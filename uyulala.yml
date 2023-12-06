@@ -1,0 +1,32 @@
+http:
+  addr: ":8080"
+  staticPath: frontend/dist
+database:
+  dsn: "root:root@tcp(127.0.0.1:3306)/uyulala?charset=utf8mb4&parseTime=True&multiStatements=true&collation=utf8mb4_unicode_ci"
+webauthn:
+  id: localhost
+  display_name: uyulala
+  origins:
+    - http://localhost:8080
+    - http://localhost:5173
+  attestation: direct
+  debug: true
+  mds3: https://mds.fidoalliance.org
+
+issuer: "http://localhost:8080"
+
+userApi:
+  trustedIssuer: ""
+
+idToken:
+  length: 1h
+
+refreshToken:
+  length: 3h
+  extendOnUse: true
+
+accessToken:
+  length: 1h
+  extension:
+    scope:
+      - authorization

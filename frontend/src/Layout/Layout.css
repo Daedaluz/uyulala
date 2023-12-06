@@ -1,0 +1,68 @@
+
+.layout {
+    background-size: cover;
+    background-position: center;
+}
+
+
+.signLayout {
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    display: grid;
+    place-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.qr {
+    grid-area: 2 / 2 / 5 / 5;
+}
+
+.displayLayout {
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    display: grid;
+    height: 100vh;
+}
+
+.sign {
+    display: flex;
+    flex-direction: row;
+    justify-items: center;
+    place-items: center;
+    justify-self: center;
+    grid-area: 10 / 2 / 11 / 4;
+}
+
+.reject {
+    display: flex;
+    flex-direction: row;
+    justify-items: center;
+    place-items: center;
+    justify-self: center;
+    grid-area: 10 / 8 / 11 / 10;
+}
+
+.signtext {
+    background-color: teal;
+    color: white;
+    padding-left: 1em;
+    padding-right: 1em;
+    overflow-y: auto;
+    grid-area: 2 / 2 / 10 / 10;
+}
+
+.signicon {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    grid-area: 1 / 1 / 2 / 2;
+}
+
+.signapp {
+    display: flex;
+    flex-direction: row;
+    justify-items: center;
+    place-items: center;
+    grid-area: 1 / 2 / 2 / 10;
+}

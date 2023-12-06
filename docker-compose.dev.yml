@@ -1,0 +1,7 @@
+services:
+  mariadb:
+    image: mariadb:10.4
+    network_mode: "host"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: uyulala

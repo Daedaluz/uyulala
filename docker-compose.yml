@@ -1,0 +1,18 @@
+services:
+  mariadb:
+    image: mariadb:10.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: uyulala
+  uyulala:
+    container_name: uyulala
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ${PWD}/uyulala.compose.yml:/etc/uyulala/uyulala.yml
+    ports:
+      - 80:8080
+    depends_on:
+      - mariadb
+

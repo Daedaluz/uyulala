@@ -1,0 +1,8 @@
+include:
+  project: "initsx/tools/podman"
+  file: "/std.yml"
+
+stages:
+- build-arch
+- build-image
+

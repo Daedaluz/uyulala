@@ -1,0 +1,57 @@
+# Issuer
+issuer: "http://localhost"
+
+# HTTP settings
+http:
+  # The path to the static files, should point to a location with the front-end authenticator.
+  staticPath: /www/
+  # The address to listen on
+  addr: ":8080"
+
+# Database settings
+database:
+  # The database connection DSN
+  dsn: "root:root@tcp(mariadb:3306)/uyulala?charset=utf8mb4&parseTime=True&multiStatements=true"
+
+# webauthn settings
+webauthn:
+  # The ID of the Relying Party
+  id: localhost
+  # The display name of the Relying Party
+  display_name: uyulala
+  # The origins of the Relying Party
+  origins:
+  - http://localhost:8080
+  - http://localhost
+  # The attestation mode
+  attestation: direct
+  # MDS3 Metadata url
+  mds3: https://mds.fidoalliance.org
+
+# userApi settings
+userApi:
+  # Trusted issuer for the user API.
+  # If set, the issuer of the JWT issuer must match this value.
+  # If not set, the user API is disabled.
+  trustedIssuer: ""
+
+# idToken settings
+idToken:
+  # How long an id token should be valid
+  length: 1h
+
+# Refresh token settings
+refreshToken:
+  # How long a refresh token should be valid
+  length: 3h
+  # Extend refresh token when used
+  extendOnUse: true
+
+# Access token settings
+accessToken:
+  # How long an access token should be valid before a refresh is required
+  length: 300s
+  # Embed the extension values in the access token claims
+  extension:
+    scope:
+      - authorization
