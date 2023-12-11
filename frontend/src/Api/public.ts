@@ -34,31 +34,6 @@ export class ICredentialCreationOptions implements CredentialCreationOptions {
 
 
 
-export type MetadataStatement = {
-    description: string
-    protocolFamily: string
-    authenticatorVersion: number
-    icon: string
-}
-
-export type StatusReport = {
-    status: string
-    effectiveDate: string
-    authenticatorVersion: number
-    certificate: string
-    url: string
-    certificationDescriptor: string
-    certificationNumber: string
-    certificationPolicyVersion: string
-    certificationRequirementsVersion: string
-}
-
-export type Metadata = {
-    aaguid: string
-    metadataStatement: MetadataStatement
-    statusReports: StatusReport[]
-}
-
 
 export class ICredentialRequestOptions implements CredentialRequestOptions {
     public publicKey: PublicKeyCredentialRequestOptions;
@@ -115,9 +90,5 @@ export class publicApi {
         return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge/${id}`, {
             method: "DELETE"
         });
-    }
-
-    getAuthenticatorDescriptor(aaguid: string) {
-        return fetchJSON<Metadata>(`${this.url}/api/v1/aaguid/${aaguid}`)
     }
 }

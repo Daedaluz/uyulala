@@ -10,17 +10,15 @@ type SignRequest = {
     data?: ArrayBuffer | string;
     timeout?: number;
     redirect?: string;
-}
+};
 
 type OAuth2Response = {
     access_token: string;
     token_type: string;
     id_token: string;
-}
+};
 
-export type Assertion = {
-
-}
+export type Assertion = {}
 
 export type BIDResponse = {
     challengeId: string;
@@ -32,6 +30,32 @@ export type BIDResponse = {
     signed: string;
     status: string;
 }
+
+export type MetadataStatement = {
+    description: string
+    protocolFamily: string
+    authenticatorVersion: number
+    icon: string
+}
+
+export type StatusReport = {
+    status: string
+    effectiveDate: string
+    authenticatorVersion: number
+    certificate: string
+    url: string
+    certificationDescriptor: string
+    certificationNumber: string
+    certificationPolicyVersion: string
+    certificationRequirementsVersion: string
+}
+
+export type Metadata = {
+    aaguid: string
+    metadataStatement: MetadataStatement
+    statusReports: StatusReport[]
+}
+
 
 export class privateApi {
     private readonly url: string;
@@ -50,7 +74,7 @@ export class privateApi {
         if (req === undefined) {
             req = {};
         }
-        if(req?.data) {
+        if (req?.data) {
             if (typeof req.data === "string") {
                 req.data = new TextEncoder().encode(req.data);
             }
@@ -83,7 +107,7 @@ export class privateApi {
     OAuth2Exchange(challengeId: string, pkce?: string) {
         const hdr = {
             ['Content-Type']: 'application/json'
-        } as any
+        } as any;
         const form = new URLSearchParams();
         form.set('client_id', this.clientId);
         form.set('code', challengeId);
@@ -97,6 +121,15 @@ export class privateApi {
             method: 'GET',
             headers: hdr,
             body: form.toString()
+        })
+    }
+
+    getAuthenticatorDescriptor(aaguid: string) {
+        return fetchJSON<Metadata>(`${this.url}/api/v1/mds/${aaguid}`, {
+            headers: {
+                Authorization: this.authHeader,
+                ['Content-Type']: 'application/json'
+            },
         })
     }
 }

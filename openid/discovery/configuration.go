@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"slices"
+	"time"
 )
 
 // https://openid.net/specs/openid-connect-discovery-1_0.html
@@ -391,7 +392,16 @@ func NewConfig(config *Required) *Full {
 }
 
 func Fetch(url string) (*Full, error) {
-	resp, err := http.Get(url)
+	cli := &http.Client{
+		Transport: &http.Transport{
+			TLSHandshakeTimeout:   time.Second * 10,
+			IdleConnTimeout:       time.Second * 10,
+			ResponseHeaderTimeout: time.Second * 10,
+			ExpectContinueTimeout: time.Second * 10,
+		},
+		Timeout: time.Second * 10,
+	}
+	resp, err := cli.Get(url)
 	if err != nil {
 		return nil, err
 	}

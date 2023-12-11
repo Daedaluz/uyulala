@@ -1,4 +1,4 @@
-package public
+package oidc
 
 import (
 	"github.com/gin-gonic/gin"

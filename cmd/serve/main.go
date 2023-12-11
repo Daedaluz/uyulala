@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-webauthn/webauthn/metadata"
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gitlab.com/daedaluz/gindb"
@@ -43,20 +44,20 @@ func logger(logger *slog.Logger) gin.HandlerFunc {
 	}
 }
 
-func customCORS() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if c.Request.Method == "OPTIONS" {
-			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-			//nolint: lll
-			c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Err, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Cookie")
-			c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Cookie")
-			c.Writer.Header().Set("Access-Control-Max-Age", "0")
-		}
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Next()
-	}
-}
+//func customCORS() gin.HandlerFunc {
+//	return func(c *gin.Context) {
+//		if c.Request.Method == "OPTIONS" {
+//			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+//			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+//			//nolint: lll
+//			c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Err, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Cookie")
+//			c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Cookie")
+//			c.Writer.Header().Set("Access-Control-Max-Age", "0")
+//		}
+//		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+//		c.Next()
+//	}
+//}
 
 func versionHandler(c *gin.Context) {
 	binfo, ok := debug.ReadBuildInfo()
@@ -83,9 +84,16 @@ func versionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func Main(cmd *cobra.Command, args []string) {
-	// Migrate database
-	gin.SetMode(gin.ReleaseMode)
+func populateMDS() {
+	slog.Info("Populating fido alliance metadata...")
+	if err := metadata.PopulateMetadata(viper.GetString("webauthn.mds3")); err != nil {
+		slog.Error("Failed to populate metadata", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("Populated!")
+}
+
+func prepareDatabase() *sqlx.DB {
 	db, err := gindb.Open("mysql", viper.GetString("database.dsn"))
 	if err != nil {
 		slog.Error("Couldn't open the database", "error", err)
@@ -103,17 +111,12 @@ func Main(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	slog.Info("Database migrated")
+	return db
+}
 
-	slog.Info("Populating fido alliance metadata...")
-	if err := metadata.PopulateMetadata(viper.GetString("webauthn.mds3")); err != nil {
-		slog.Error("Failed to populate metadata", "error", err)
-		os.Exit(1)
-	}
-	slog.Info("Populated!")
-
+func setupGinEngine(db *sqlx.DB) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery(),
-		customCORS(),
 		logger(slog.Default()),
 		static.Serve("/", static.LocalFile(viper.GetString("http.staticPath"), true)),
 		gindb.MiddlewareDB(db),
@@ -129,9 +132,20 @@ func Main(cmd *cobra.Command, args []string) {
 
 	root := engine.Group("/")
 	wellknown.AddRoutes(root)
-	root.GET("/version", versionHandler)
+	root.GET("/api/version", versionHandler)
 	r := engine.Group("/api/v1")
 	v1.AddRoutes(r)
+	return engine
+}
+
+func Main(cmd *cobra.Command, args []string) {
+	// Migrate database
+	gin.SetMode(gin.ReleaseMode)
+
+	db := prepareDatabase()
+	populateMDS()
+
+	engine := setupGinEngine(db)
 
 	if issuer := viper.GetString("userApi.trustedIssuer"); issuer != "" {
 		if err := trust.Configure(issuer); err != nil {

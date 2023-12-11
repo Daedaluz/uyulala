@@ -23,7 +23,7 @@ func OpenIDConfigurationHandler(c *gin.Context) {
 		Issuer:                 issuer,
 		AuthorizationEndpoint:  fmt.Sprintf("%s/authorize", issuer),
 		TokenEndpoint:          fmt.Sprintf("%s/api/v1/collect", issuer),
-		JWKSURI:                fmt.Sprintf("%s/api/v1/jwkset.json", issuer),
+		JWKSURI:                fmt.Sprintf("%s/api/v1/oidc/jwkset.json", issuer),
 		ResponseTypesSupported: []string{discovery.ResponseTypeCode},
 		GrantTypesSupported:    []string{discovery.GrantTypeAuthorizationCode},
 		ScopesSupported:        []string{"openid", "offline_access"},

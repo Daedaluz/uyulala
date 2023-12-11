@@ -1,4 +1,4 @@
-package public
+package client
 
 import (
 	"github.com/gin-gonic/gin"
