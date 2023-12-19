@@ -13,10 +13,8 @@ import (
 	"uyulala/internal/api/v1/user"
 )
 
-func AddRoutes(g *gin.RouterGroup) {
-
-	publicGroup := g.Group("/")
-	publicGroup.Use(cors.New(cors.Config{
+var (
+	publicCorsConfig = cors.Config{
 		AbortOnError:     true,
 		AllowAllOrigins:  false,
 		AllowedOrigins:   viper.GetStringSlice("webauthn.origins"),
@@ -26,41 +24,35 @@ func AddRoutes(g *gin.RouterGroup) {
 		ExposedHeaders:   nil,
 		AllowCredentials: false,
 		MaxAge:           0,
-	}))
+	}
+	clientCorsConfig = cors.Config{
+		AllowAllOrigins:  true,
+		AllowedHeaders:   []string{"Authorization", "*"},
+		AllowCredentials: true,
+	}
+)
+
+func AddRoutes(g *gin.RouterGroup) {
+	publicGroup := g.Group("/")
+	publicGroup.Use(cors.New(publicCorsConfig))
 
 	clientGroup := g.Group("/")
 	clientGroup.Use(
 		application.ClientMiddleware(),
-		cors.New(cors.Config{
-			AllowAllOrigins: true,
-			AllowedHeaders:  []string{"Authorization", "*"},
-		}),
+		cors.New(clientCorsConfig),
 	)
 
 	serviceGroup := g.Group("/service")
 	serviceGroup.Use(
 		application.ClientMiddleware(),
 		application.AdminMiddleware(),
-		cors.New(cors.Config{
-			AllowAllOrigins: true,
-			AllowedHeaders:  []string{"Authorization", "*"},
-		}),
+		cors.New(clientCorsConfig),
 	)
 
 	userGroup := g.Group("/user")
 	userGroup.Use(
 		application.UserMiddleware(),
-		cors.New(cors.Config{
-			AbortOnError:     true,
-			AllowAllOrigins:  false,
-			AllowedOrigins:   viper.GetStringSlice("webauthn.origins"),
-			AllowOriginFunc:  nil,
-			AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete},
-			AllowedHeaders:   nil,
-			ExposedHeaders:   nil,
-			AllowCredentials: false,
-			MaxAge:           0,
-		}),
+		cors.New(clientCorsConfig),
 	)
 
 	issuerGroup := g.Group("/oidc")
