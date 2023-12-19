@@ -11,8 +11,7 @@ It is a simple and secure way to authenticate users without the need for usernam
 - [x] Create passkeys
 - [x] Create apps
 - [x] Authenticate users
-- [x] OAuth2 Provider
-- [x] PKCE
+- [x] OAuth2 Provider with PKCE support
 - [x] Bank-ID similar api
 
 ## Future plans
@@ -21,6 +20,7 @@ It is a simple and secure way to authenticate users without the need for usernam
 - [ ] Actually create challenges that are hash-related to the sing-data, allowing "Document signing"
 - [ ] Better error handling, logging and documentation
 - [ ] Nicer Web UI
+- [ ] Replace the websocket-based remote-signer with some webrtc-based solution (eliminate load-balancer issue with multiple instances)?
 - [ ] Consider adding fictional email to ID Tokens based on user-id eg `ABCDEFG@uyulala.local`
 - [ ] Look over any potential useless / missing data with the response from the collect api; it should contain everything to validate the signature
 - [ ] Consider move the front-end to its own repo
