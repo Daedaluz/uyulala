@@ -13,8 +13,8 @@ import (
 	"uyulala/internal/api/v1/user"
 )
 
-var (
-	publicCorsConfig = cors.Config{
+func AddRoutes(g *gin.RouterGroup) {
+	publicCorsConfig := cors.Config{
 		AbortOnError:     true,
 		AllowAllOrigins:  false,
 		AllowedOrigins:   viper.GetStringSlice("webauthn.origins"),
@@ -25,14 +25,12 @@ var (
 		AllowCredentials: false,
 		MaxAge:           0,
 	}
-	clientCorsConfig = cors.Config{
+	clientCorsConfig := cors.Config{
 		AllowAllOrigins:  true,
 		AllowedHeaders:   []string{"Authorization", "*"},
 		AllowCredentials: true,
 	}
-)
 
-func AddRoutes(g *gin.RouterGroup) {
 	publicGroup := g.Group("/")
 	publicGroup.Use(cors.New(publicCorsConfig))
 
