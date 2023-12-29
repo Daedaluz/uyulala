@@ -53,6 +53,22 @@ Point a browser at `http://localhost/demo`
 5) ????
 6) Profit
 
+## BankID flow
+
+```mermaid
+sequenceDiagram
+  ClientFontend->>ClientServer: Login
+  ClientServer->>Uyulala: /api/v1/sign
+  Uyulala->>ClientServer: {"challengeId":"xxx"}
+  ClientServer->>ClientFontend: Present Link / Qr
+  ClientServer-->>Uyulala: /api/v1/collect
+  Note over ClientServer,Uyulala: Repeat till success or rejected/expired
+  User->>Uyulala:  Signs / Reject
+  ClientServer->>Uyulala: /api/v1/collect
+  Uyulala->>ClientServer: {"status": "success", ...}
+```
+
+
 ## API
 
 The API is split into four parts;
