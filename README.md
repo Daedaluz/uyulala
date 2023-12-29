@@ -66,7 +66,7 @@ sequenceDiagram
   User->>Uyulala:  Signs / Reject
   ClientServer->>Uyulala: /api/v1/collect
   Uyulala->>ClientServer: {"status": "success", ...}
-  ClientServer->ClientFrontend: User Loged in
+  ClientServer->>ClientFrontend: User Loged in
 ```
 
 
