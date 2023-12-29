@@ -57,15 +57,16 @@ Point a browser at `http://localhost/demo`
 
 ```mermaid
 sequenceDiagram
-  ClientFontend->>ClientServer: Login
+  ClientFrontend->>ClientServer: Login
   ClientServer->>Uyulala: /api/v1/sign
   Uyulala->>ClientServer: {"challengeId":"xxx"}
-  ClientServer->>ClientFontend: Present Link / Qr
+  ClientServer->>ClientFrontend: Present Link / Qr
   ClientServer-->>Uyulala: /api/v1/collect
   Note over ClientServer,Uyulala: Repeat till success or rejected/expired
   User->>Uyulala:  Signs / Reject
   ClientServer->>Uyulala: /api/v1/collect
   Uyulala->>ClientServer: {"status": "success", ...}
+  ClientServer->ClientFrontend: User Loged in
 ```
 
 
