@@ -13,7 +13,7 @@ It is a simple and secure way to authenticate users without the need for usernam
 - [x] Authenticate users
 - [x] OAuth2 Provider with PKCE support
 - [x] Bank-ID similar api
-- [x] Consider move the front-end to its own repo (It will stay in-repo for simplicity)
+- [x] Consider move the front-end to its own repo (update: It will stay in-repo for simplicity)
 - [x] Create a suitable Cross-Origin policy
 
 ## Future plans
