@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: uyulala
+      namespace: uyulala
+      labels:
+        app: uyulala
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: uyulala
+      template:
+        metadata:
+          name: uyulala
+          labels:
+            app: uyulala
+            git-hash: "${GITHUB_SHA}"
+        spec:
+          imagePullSecrets:
+            - name: ghcr
+          containers:
+            - name: uyulala
+              image: ghcr.io/daedaluz/uyulala:latest
+              imagePullPolicy: Always
+              volumeMounts:
+                - mountPath: /etc/uyulala
+                  name: uyulala-config
+              ports:
+                - containerPort: 80
+                  name: http
+                  protocol: TCP
+          volumes:
+            - name: uyulala-config
+              configMap:
+                name: uyulala
+          restartPolicy: Always
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: uyulala
+      namespace: uyulala
+    spec:
+      selector:
+        app: uyulala
+      ports:
+        - protocol: TCP
+          name: http
+          port: 80
+          targetPort: 80
+      type: ClusterIP
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: uyulala-root
+      namespace: uyulala
+    spec:
+      hostnames:
+        - auth.inits.se
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: inits-se
+          namespace: ingress
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: http
+              port: 80
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
