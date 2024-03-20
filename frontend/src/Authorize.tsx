@@ -11,6 +11,7 @@ export const Authorize = () => {
     const [error, setError] = useState<ApiError>();
 
     useEffect(() => {
+        console.log("params", params);
         api.createOAuth2Challenge(params).then((response) => {
             navigate(`/authenticator?id=${response.challenge_id}`, {replace: true});
         }).catch((error) => {
