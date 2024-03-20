@@ -69,7 +69,7 @@ items:
         - backendRefs:
             - group: ""
               kind: Service
-              name: http
+              name: uyulala
               port: 80
           matches:
             - path:

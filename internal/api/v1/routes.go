@@ -54,7 +54,10 @@ func AddRoutes(g *gin.RouterGroup) {
 	)
 
 	issuerGroup := g.Group("/oidc")
-	issuerGroup.Use(application.IssuerMiddleware())
+	issuerGroup.Use(
+		application.IssuerMiddleware(),
+		cors.New(clientCorsConfig),
+	)
 
 	public.AddRoutes(publicGroup)
 	client.AddRoutes(clientGroup)
