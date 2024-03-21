@@ -1,7 +1,10 @@
 name: Deploy Dev
 on:
-  registry_package:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Docker"]
+    types:
+      - completed
 jobs:
   Deploy:
     name: Deploy to Dev
