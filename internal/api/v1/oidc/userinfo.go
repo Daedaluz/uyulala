@@ -2,12 +2,17 @@ package oidc
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"uyulala/internal/api"
 	"uyulala/internal/api/application"
 )
 
 func userinfo(c *gin.Context) {
 	token := application.GetCurrentJWT(c)
+	if token == nil {
+		api.AbortError(c, http.StatusUnauthorized, "no_jwt", "No JWT provided", nil)
+		return
+	}
 	subj := token.Subject()
 	api.JSONResponse(c, gin.H{
 		"sub":   subj,
