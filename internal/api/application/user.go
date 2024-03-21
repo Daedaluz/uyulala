@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/viper"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -53,15 +54,18 @@ func JWTMiddleware() gin.HandlerFunc {
 		authorization := c.GetHeader("Authorization")
 		fields := strings.Fields(authorization)
 		if len(fields) != 2 {
+			slog.Warn("JWTMiddleware", "fields", len(fields))
 			c.Next()
 			return
 		}
 		if !strings.EqualFold(fields[0], "bearer") {
+			slog.Warn("JWTMiddleware", "auth_type", fields[0])
 			c.Next()
 			return
 		}
 		set, err := trust.GetJWKSet()
 		if err != nil {
+			slog.Warn("JWTMiddleware", "jwkset_error", err)
 			c.Next()
 			return
 		}
@@ -71,6 +75,7 @@ func JWTMiddleware() gin.HandlerFunc {
 			jwt.WithIssuer(viper.GetString("userApi.trustedIssuer")),
 			jwt.WithAcceptableSkew(time.Minute))
 		if err != nil {
+			slog.Warn("JWTMiddleware", "parse_error", err)
 			c.Next()
 			return
 		}

@@ -35,21 +35,21 @@ func AddRoutes(g *gin.RouterGroup) {
 
 	clientGroup := g.Group("/")
 	clientGroup.Use(
-		application.ClientMiddleware(),
 		cors.New(clientCorsConfig),
+		application.ClientMiddleware(),
 	)
 
 	serviceGroup := g.Group("/service")
 	serviceGroup.Use(
+		cors.New(clientCorsConfig),
 		application.ClientMiddleware(),
 		application.AdminMiddleware(),
-		cors.New(clientCorsConfig),
 	)
 
 	userGroup := g.Group("/user")
 	userGroup.Use(
-		application.UserMiddleware(),
 		cors.New(clientCorsConfig),
+		application.UserMiddleware(),
 	)
 
 	issuerGroup := g.Group("/oidc")
