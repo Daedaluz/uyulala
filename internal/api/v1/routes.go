@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/gin-gonic/contrib/cors"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"net/http"
@@ -15,19 +15,18 @@ import (
 
 func AddRoutes(g *gin.RouterGroup) {
 	publicCorsConfig := cors.Config{
-		AbortOnError:     true,
 		AllowAllOrigins:  false,
-		AllowedOrigins:   viper.GetStringSlice("webauthn.origins"),
+		AllowOrigins:     viper.GetStringSlice("webauthn.origins"),
 		AllowOriginFunc:  nil,
-		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodDelete},
-		AllowedHeaders:   nil,
-		ExposedHeaders:   nil,
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodDelete},
+		AllowHeaders:     nil,
+		ExposeHeaders:    nil,
 		AllowCredentials: false,
 		MaxAge:           0,
 	}
 	clientCorsConfig := cors.Config{
 		AllowAllOrigins:  true,
-		AllowedHeaders:   []string{"Authorization", "*"},
+		AllowHeaders:     []string{"Authorization", "*"},
 		AllowCredentials: true,
 	}
 

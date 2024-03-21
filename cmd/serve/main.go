@@ -3,7 +3,8 @@ package serve
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/contrib/static"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-webauthn/webauthn/metadata"
@@ -131,8 +132,16 @@ func setupGinEngine(db *sqlx.DB) *gin.Engine {
 	})
 
 	root := engine.Group("/")
-	wellknown.AddRoutes(root)
-	root.GET("/api/version", versionHandler)
+	wknown := root.Group("/", cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowHeaders:     []string{"Authorization", "*"},
+		AllowCredentials: true,
+	}))
+	wellknown.AddRoutes(wknown)
+	wknown.GET("/api/version", versionHandler)
+	wknown.OPTIONS("/api/version", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
 	r := engine.Group("/api/v1")
 	v1.AddRoutes(r)
 	return engine
