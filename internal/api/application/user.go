@@ -72,7 +72,7 @@ func JWTMiddleware() gin.HandlerFunc {
 		token, err := jwt.Parse([]byte(fields[1]),
 			jwt.WithValidate(true),
 			jwt.WithKeySet(set),
-			jwt.WithIssuer(viper.GetString("userApi.trustedIssuer")),
+			jwt.WithIssuer(viper.GetString("issuer")),
 			jwt.WithAcceptableSkew(time.Minute))
 		if err != nil {
 			slog.Warn("JWTMiddleware", "parse_error", err)
