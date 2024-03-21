@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 	"uyulala/internal/api"
+	"uyulala/internal/db/keydb"
 	"uyulala/internal/trust"
 )
 
@@ -63,9 +64,15 @@ func JWTMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		set, err := trust.GetJWKSet()
+		keys, err := keydb.GetKeys(c)
 		if err != nil {
-			slog.Warn("JWTMiddleware", "jwkset_error", err)
+			slog.Warn("JWKMiddleware", "hint", "get_keys", "err", err)
+			c.Next()
+			return
+		}
+		set, err := keys.Set()
+		if err != nil {
+			slog.Warn("JWKMiddleware", "hint", "set", "err", err)
 			c.Next()
 			return
 		}
