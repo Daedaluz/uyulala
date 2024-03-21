@@ -48,6 +48,36 @@ func UserMiddleware() gin.HandlerFunc {
 	}
 }
 
+func JWTMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authorization := c.GetHeader("Authorization")
+		fields := strings.Fields(authorization)
+		if len(fields) != 2 {
+			c.Next()
+			return
+		}
+		if !strings.EqualFold(fields[0], "bearer") {
+			c.Next()
+			return
+		}
+		set, err := trust.GetJWKSet()
+		if err != nil {
+			c.Next()
+			return
+		}
+		token, err := jwt.Parse([]byte(fields[1]),
+			jwt.WithValidate(true),
+			jwt.WithKeySet(set),
+			jwt.WithIssuer(viper.GetString("userApi.trustedIssuer")),
+			jwt.WithAcceptableSkew(time.Minute))
+		if err != nil {
+			c.Next()
+			return
+		}
+		c.Set("jwt", token)
+	}
+}
+
 func GetCurrentJWT(c *gin.Context) jwt.Token {
 	token, exists := c.Get("jwt")
 	if !exists {
