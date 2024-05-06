@@ -12,7 +12,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ${PWD}/uyulala.compose.yml:/etc/uyulala/uyulala.yml
+      - ./uyulala.compose.yml:/etc/uyulala/uyulala.yml
     ports:
       - 80:8080
     depends_on:
