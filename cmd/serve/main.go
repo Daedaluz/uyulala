@@ -179,10 +179,18 @@ func Main(cmd *cobra.Command, args []string) {
 	signal.Notify(sigch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	slog.Info("Starting server")
 	go func() {
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("Server returned error", "error", err)
+		if viper.GetBool("tls.enable") {
+			if err := server.ListenAndServeTLS(viper.GetString("tls.cert"), viper.GetString("tls.key")); err != nil {
+				slog.Error("TLS server returned error", "error", err)
+			} else {
+				slog.Info("Byte TLS.")
+			}
 		} else {
-			slog.Info("Bye!")
+			if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				slog.Error("Server returned error", "error", err)
+			} else {
+				slog.Info("Bye!")
+			}
 		}
 	}()
 	slog.Info("Server started", "addr", viper.GetString("http.addr"))

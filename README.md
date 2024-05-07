@@ -36,7 +36,7 @@ $ docker exec -ti uyulala uyulala create key
 $ docker exec -ti uyulala uyulala create app --demo demo
 ```
 
-Point a browser at `http://localhost/demo`
+Point a browser at `https://localhost/demo`
 
 ## Test use case
 

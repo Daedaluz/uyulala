@@ -45,7 +45,11 @@ func Main(_ *cobra.Command, args []string) {
 		*Urls = []string{}
 		*Alg = "RS256"
 		*Admin = true
-		*Urls = append(*Urls, "http://localhost:5173/demo", "http://localhost/demo", "http://localhost:3000/login/generic_oauth")
+		*Urls = append(*Urls, "http://localhost:5173/demo",
+			"http://localhost/demo",
+			"http://localhost:3000/login/generic_oauth",
+			"https://localhost/demo",
+		)
 	}
 
 	var kid = *KeyID
