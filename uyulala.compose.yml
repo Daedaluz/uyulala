@@ -27,6 +27,7 @@ webauthn:
   attestation: direct
   # MDS3 Metadata url
   mds3: https://mds.fidoalliance.org
+  attachment: cross-platform
 
 # userApi settings
 userApi:

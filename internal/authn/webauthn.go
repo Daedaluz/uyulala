@@ -14,9 +14,10 @@ func CreateWebauthnConfig() *webauthn.WebAuthn {
 		RPOrigins:             viper.GetStringSlice("webauthn.origins"),
 		AttestationPreference: protocol.ConveyancePreference(viper.GetString("webauthn.attestation")),
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			RequireResidentKey: &trueValue,
-			ResidentKey:        "required",
-			UserVerification:   "required",
+			RequireResidentKey:      &trueValue,
+			ResidentKey:             "required",
+			UserVerification:        "required",
+			AuthenticatorAttachment: protocol.AuthenticatorAttachment(viper.GetString("webauthn.attachment")),
 		},
 		EncodeUserIDAsString: false,
 		Debug:                false,
