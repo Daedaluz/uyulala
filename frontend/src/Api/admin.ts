@@ -7,20 +7,20 @@ export type Key = {
     lastUsed: string
     aaguid: string
     key: {
-        ID: string
-        PublicKey: string
-        AttestationType: string
-        Authenticator: {
+        id: string
+        publicKey: string
+        attestationType: string
+        authenticator: {
             AAGUID: string
-            SignCount: number
-            CloneWarning: boolean
-            Attachment: string
+            signCount: number
+            cloneWarning: boolean
+            attachment: string
         }
         Flags: {
-            UserPresent: boolean
-            UserVerified: boolean
-            BackupEligible: boolean
-            BackupState: boolean
+            userPresent: boolean
+            userVerified: boolean
+            backupEligible: boolean
+            backupState: boolean
         }
     }
 }

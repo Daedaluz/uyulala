@@ -9,8 +9,8 @@ FROM node:20-alpine3.19 AS nodebuilder
 ADD ./frontend /src
 WORKDIR /src/
 RUN apk add --no-cache git file && npm i -g pnpm@latest 
-RUN npm i
-RUN npm run build || (cat /root/.npm/_logs/* && env && file /bin/sh && exit 1)
+RUN pnpm i
+RUN pnpm run build
 
 FROM alpine:3.19
 COPY --from=gobuilder /uyulala /usr/bin/uyulala

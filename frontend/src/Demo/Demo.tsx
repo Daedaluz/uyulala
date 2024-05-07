@@ -38,7 +38,7 @@ const UserKey = ({user, userKey}: UserKeyProps) => {
     };
     return (
         <TableRow>
-            <TableCell>{userKey.key.Authenticator.SignCount}</TableCell>
+            <TableCell>{userKey.key.authenticator.signCount}</TableCell>
             <TableCell>{userKey.hash}</TableCell>
             <TableCell><AAGUID aaguid={userKey.aaguid}/></TableCell>
             <TableCell>{userKey.created}</TableCell>
