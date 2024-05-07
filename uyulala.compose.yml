@@ -23,11 +23,13 @@ webauthn:
   origins:
   - http://localhost:8080
   - http://localhost
+  - https://localhost:8080
+  - https://localhost
   # The attestation mode
   attestation: direct
   # MDS3 Metadata url
   mds3: https://mds.fidoalliance.org
-  attachment: cross-platform
+  attachment: ""
 
 # userApi settings
 userApi:
@@ -56,3 +58,7 @@ accessToken:
   extension:
     scope:
       - authorization
+tls:
+  enable: true
+  cert: "/tls/server.crt"
+  key: "/tls/server.key"
