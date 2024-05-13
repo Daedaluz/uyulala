@@ -1,6 +1,6 @@
 module uyulala
 
-go 1.21.0
+go 1.22.0
 
 require (
 	github.com/gin-contrib/cors v1.7.2
@@ -22,8 +22,6 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
-	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
