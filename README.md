@@ -101,7 +101,7 @@ client should poll this endpoint until it either expires or the user signs the c
 This endpoint also doubles as the OAuth2 token endpoint if the `Content-Type` header
 is `application/x-www-form-urlencoded`.
 
-Using OAuth2, the challengeId is the authorization code.
+Using OAuth2, the code is generated when the user has signed the challenge and the challenge is started with an oauth2 flow.
 
 * `challengeId` - The challenge id to collect
 
