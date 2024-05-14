@@ -145,11 +145,13 @@ func ClientMiddleware() gin.HandlerFunc {
 			case "authorization_code":
 				code := ctx.PostForm("code")
 				codeVerifier := ctx.PostForm("code_verifier")
-				ch, err := challengedb.GetChallenge(ctx, code)
+				ch, err := challengedb.GetChallengeByCode(ctx, code)
 				if err != nil {
 					api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Invalid challenge", err)
 					return
 				}
+				err = challengedb.DeleteCode(ctx, code)
+
 				if ch.AppID != app.ID {
 					api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Challenge wasn't for this client", err)
 					return

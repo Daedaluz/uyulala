@@ -264,6 +264,45 @@ CREATE OR REPLACE TABLE challenges
     CONSTRAINT FOREIGN KEY challenges_app_id (app_id) REFERENCES applications (id) ON DELETE SET NULL
 );
 
+CREATE OR REPLACE TABLE challenge_codes
+(
+    code VARCHAR(36) PRIMARY KEY,
+    challenge_id VARCHAR(36),
+    CONSTRAINT FOREIGN KEY challenge_codes_challenge_id (challenge_id) REFERENCES challenges (id) ON DELETE CASCADE
+);
+
+CREATE OR REPLACE PROCEDURE create_code(IN code VARCHAR(36), IN challenge_id VARCHAR(36))
+BEGIN
+    INSERT challenge_codes VALUE (code, challenge_id);
+END;
+
+CREATE OR REPLACE PROCEDURE get_challenge_by_code(IN code VARCHAR(36))
+BEGIN
+    SELECT created,
+           id,
+           type,
+           app_id,
+           expire,
+           public_data,
+           private_data,
+           signature_text,
+           signature_data,
+           signature,
+           credential,
+           signed,
+           redirect_url,
+           oauth2_context,
+           status
+    FROM challenge_codes c
+    RIGHT JOIN challenges c2 on c.challenge_id = c2.id
+    WHERE c.code = code;
+END;
+
+CREATE OR REPLACE PROCEDURE delete_code(IN code VARCHAR(36))
+BEGIN
+    DELETE FROM challenge_codes  WHERE code = code;
+END;
+
 CREATE OR REPLACE PROCEDURE create_challenge(IN challenge_id VARCHAR(36), IN type VARCHAR(36), IN app_id VARCHAR(36),
                                              IN expire DATETIME,
                                              IN public_data BLOB,
