@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 	"gitlab.com/daedaluz/gindb"
 	"net/http"
 	"net/url"
@@ -189,5 +190,37 @@ func SetChallengeStatus(ctx *gin.Context, challengeID, status string) error {
 func SetOAuth2Context(ctx *gin.Context, challengeID, context string) error {
 	tx := gindb.GetTX(ctx)
 	_, err := tx.Exec(`call set_oauth2_context(?, ?)`, challengeID, context)
+	return err
+}
+
+func GetChallengeByCode(ctx *gin.Context, challengeCode string) (ch *Data, err error) {
+	ch = &Data{}
+	tx := gindb.GetTX(ctx)
+	res, err := tx.Queryx(`call get_challenge_by_code(?)`, challengeCode)
+	if err != nil {
+		return nil, err
+	}
+	if !res.Next() {
+		return nil, sql.ErrNoRows
+	}
+	if err := res.StructScan(ch); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func CreateCode(ctx *gin.Context, challengeID string) (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	tx := gindb.GetTX(ctx)
+	_, err = tx.Exec(`call create_code(?, ?)`, id.String(), challengeID)
+	return id.String(), err
+}
+
+func DeleteCode(ctx *gin.Context, code string) error {
+	tx := gindb.GetTX(ctx)
+	_, err := tx.Exec(`call delete_code(?)`, code)
 	return err
 }

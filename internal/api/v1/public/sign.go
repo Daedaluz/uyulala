@@ -86,12 +86,6 @@ func signLogin(context *gin.Context, challengeID string, challenge *challengedb.
 		return
 	}
 
-	if err != nil {
-		slog.Error("signLogin ValidateDiscoverableLogin", "error", err)
-		api.AbortError(context, http.StatusBadRequest, "invalid_response", "Invalid response", err)
-		return
-	}
-
 	if err := userdb.PingUserKey(context, cred); err != nil {
 		slog.Error("signLogin PingUserKey", "error", err)
 		api.AbortError(context, http.StatusBadRequest, "invalid_response", "Invalid response", err)
@@ -118,7 +112,13 @@ func signLogin(context *gin.Context, challengeID string, challenge *challengedb.
 		if r, err := url.Parse(challenge.RedirectURL); err == nil {
 			q := r.Query()
 			if oauthContext, err := url.ParseQuery(challenge.OAuth2Context); err == nil && len(oauthContext) > 0 {
-				q.Set("code", challengeID)
+				code, err := challengedb.CreateCode(context, challengeID)
+				if err != nil {
+					slog.Error("signLogin CreateCode", "error", err)
+					api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
+					return
+				}
+				q.Set("code", code)
 				if oauthContext.Get("state") != "" {
 					q.Set("state", oauthContext.Get("state"))
 				}
