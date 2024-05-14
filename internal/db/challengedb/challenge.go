@@ -196,13 +196,7 @@ func SetOAuth2Context(ctx *gin.Context, challengeID, context string) error {
 func GetChallengeByCode(ctx *gin.Context, challengeCode string) (ch *Data, err error) {
 	ch = &Data{}
 	tx := gindb.GetTX(ctx)
-	res, err := tx.Queryx(`call get_challenge_by_code(?)`, challengeCode)
-	if err != nil {
-		return nil, err
-	}
-	if !res.Next() {
-		return nil, sql.ErrNoRows
-	}
+	res := tx.QueryRowx(`call get_challenge_by_code(?)`, challengeCode)
 	if err := res.StructScan(ch); err != nil {
 		return nil, err
 	}
@@ -221,6 +215,16 @@ func CreateCode(ctx *gin.Context, challengeID string) (string, error) {
 
 func DeleteCode(ctx *gin.Context, code string) error {
 	tx := gindb.GetTX(ctx)
-	_, err := tx.Exec(`call delete_code(?)`, code)
-	return err
+	x, err := tx.Exec(`call delete_code(?)`, code)
+	if err != nil {
+		return err
+	}
+	n, err := x.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return sql.ErrNoRows
+	}
+	return nil
 }

@@ -49,6 +49,9 @@ func Main(_ *cobra.Command, args []string) {
 			"http://localhost/demo",
 			"http://localhost:3000/login/generic_oauth",
 			"https://localhost/demo",
+			"https://localhost:8080/demo",
+			"https://oauthdebugger.com/debug",
+			"https://oauth.tools/callback/code",
 		)
 	}
 

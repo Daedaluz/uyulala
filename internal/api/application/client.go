@@ -150,7 +150,8 @@ func ClientMiddleware() gin.HandlerFunc {
 					api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Invalid challenge", err)
 					return
 				}
-				_ = challengedb.DeleteCode(ctx, code)
+				err = challengedb.DeleteCode(ctx, code)
+
 				if ch.AppID != app.ID {
 					api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Challenge wasn't for this client", err)
 					return

@@ -300,7 +300,7 @@ END;
 
 CREATE OR REPLACE PROCEDURE delete_code(IN code VARCHAR(36))
 BEGIN
-    DELETE from challenge_codes c WHERE c.code = code;
+    DELETE FROM challenge_codes  WHERE code = code;
 END;
 
 CREATE OR REPLACE PROCEDURE create_challenge(IN challenge_id VARCHAR(36), IN type VARCHAR(36), IN app_id VARCHAR(36),
