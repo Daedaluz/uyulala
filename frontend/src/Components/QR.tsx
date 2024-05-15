@@ -1,31 +1,27 @@
-import {App} from "../Api/public.ts";
 import {QRCode} from "react-qrcode-logo";
 import {useMemo} from "react";
+import {useTheme} from "@mui/material";
 
 export type QRProps = {
-    app: App
+    value?: string
 }
 
-export const QR = ({app}: QRProps) => {
+export const QR = ({value}: QRProps) => {
+    const theme = useTheme();
     const logoSettings = useMemo(() => {
-        if (app.icon !== '') {
-            return {
-                logoImage: app.icon,
-                eyeRadius: 7,
-                logoPadding: 5,
-                logoPaddingStyle: 'circle' as ('circle' | 'square' | undefined)
-            }
-        }
         return {
             logoImage: '',
             eyeRadius: 0,
             logoPadding: 0,
             logoPaddingStyle: 'circle' as ('circle' | 'square' | undefined)
         }
-    }, [app.icon])
+    }, [])
     return (
-        <QRCode bgColor={'#FFFFFF00'} fgColor={"#FFFFFF"} removeQrCodeBehindLogo={true} size={300}
-                ecLevel={'H'}
-                value={`${location.toString()}`} qrStyle={'dots'} {...logoSettings} />
+    //    <QRCode bgColor={'#FFFFFF00'} fgColor={"#FFFFFF"} removeQrCodeBehindLogo={true} size={300}
+    //            ecLevel={'H'}
+    //            value={value ? value : `${location.toString()}`} qrStyle={'squares'} {...logoSettings} />
+    <QRCode bgColor={theme.palette.background.paper} fgColor={theme.palette.text.primary} size={300}
+            ecLevel={'L'}
+            value={value ? value : `${location.toString()}`} qrStyle={'squares'} {...logoSettings} />
     );
 }

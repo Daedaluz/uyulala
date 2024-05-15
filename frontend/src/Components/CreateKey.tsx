@@ -1,18 +1,17 @@
 import {useEffect, useRef, useState} from "react";
 import {useApi} from "../Context/Api.tsx";
-import {App} from "../Api/public.ts";
 import {useAlert} from "../Context/Alert.tsx";
 import {QR} from "./QR.tsx";
 import {useWebsocket} from "../Hooks/useWebsocket.ts";
 import {authnDecode, authnEncode} from "../Api/common.ts";
+import {Paper} from "@mui/material";
 
 export type CreateKeyProps = {
     id: string
     challenge: CredentialCreationOptions
-    app: App
 }
 
-export const CreateKey = ({id, app, challenge}: CreateKeyProps) => {
+export const CreateKey = ({id, challenge}: CreateKeyProps) => {
     const {publicApi: api} = useApi();
     const {showAlert} = useAlert();
     const {message, state, send} = useWebsocket(`/api/v1/remote/${id}`);
@@ -64,11 +63,11 @@ export const CreateKey = ({id, app, challenge}: CreateKeyProps) => {
     return (
         <>
             <div className={'signLayout'}>
-                <div className={'qr'}>
-                    <h1 style={{textAlign: 'center', color: '#FFFFFF'}}>Create key</h1>
-                    <h2 style={{textAlign: 'center', color: '#FFFFFF'}}>{challenge.publicKey?.user.displayName}</h2>
-                    <QR app={app}/>
-                </div>
+                <Paper className={'qr'}>
+                    <h1 style={{textAlign: 'center'}}>Register</h1>
+                    <QR/>
+                    <h2 style={{textAlign: 'center'}}>{challenge.publicKey?.user.displayName}</h2>
+                </Paper>
             </div>
         </>
     )

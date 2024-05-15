@@ -11,12 +11,31 @@ import {Authorize} from "./Authorize.tsx";
 import {Home} from "./Home.tsx";
 import {DemoPage} from "./Demo/Demo.tsx";
 import {ApiProvider} from "./Context/Api.tsx";
-import {createTheme, ThemeProvider} from "@mui/material";
+import {colors, createTheme, ThemeProvider} from "@mui/material";
 import {AlertProvider} from "./Context/Alert.tsx";
 
 const darkTheme = createTheme({
     palette: {
         mode: 'dark',
+        background: {
+            default: '#282828',
+            paper: '#292929'
+        },
+        text: {
+            primary: '#a0a0a0',
+            disabled: '#404040',
+            secondary: '#a2a2a2',
+        },
+        primary: colors.grey,
+        secondary: colors.grey,
+        common: {
+            black: '#252525',
+            white: '#505050'
+        },
+        grey: colors.grey,
+        info: colors.grey,
+        error: colors.brown,
+        warning: colors.amber
     }
 })
 

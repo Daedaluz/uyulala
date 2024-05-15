@@ -2,6 +2,7 @@
 .layout {
     background-size: cover;
     background-position: center;
+    background-color: beige;
 }
 
 
@@ -16,6 +17,8 @@
 
 .qr {
     grid-area: 2 / 2 / 5 / 5;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .displayLayout {
@@ -44,7 +47,6 @@
 }
 
 .signtext {
-    background-color: teal;
     color: white;
     padding-left: 1em;
     padding-right: 1em;
