@@ -7,10 +7,11 @@ webauthn:
   id: localhost
   display_name: uyulala
   origins:
-    - http://localhost:8080
-    - http://localhost:5173
-    - https://localhost:8080
     - https://localhost
+    - http://localhost:8080
+    - https://localhost:8080
+    - http://localhost:5173
+    - https://localhost:5173
   attestation: direct
   debug: true
   mds3: https://mds.fidoalliance.org
@@ -34,6 +35,6 @@ accessToken:
       - authorization
 
 tls:
-  enable: true
+  enable: false
   cert: "tls/server.crt"
   key: "tls/server.key"

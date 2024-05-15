@@ -221,8 +221,8 @@ CREATE OR REPLACE TABLE application_user_meta
     app_id    VARCHAR(36) NOT NULL,
     user_id   VARCHAR(36) NOT NULL,
     last_auth DATETIME,
-    CONSTRAINT FOREIGN KEY application_user_meta_app_id (app_id) REFERENCES applications (id),
-    CONSTRAINT FOREIGN KEY application_user_meta_user_id (user_id) REFERENCES users (id),
+    CONSTRAINT FOREIGN KEY application_user_meta_app_id (app_id) REFERENCES applications (id) ON DELETE CASCADE,
+    CONSTRAINT FOREIGN KEY application_user_meta_user_id (user_id) REFERENCES users (id) ON DELETE CASCADE,
     PRIMARY KEY (app_id, user_id)
 );
 

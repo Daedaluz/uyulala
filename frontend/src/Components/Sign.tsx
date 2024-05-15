@@ -4,7 +4,7 @@ import {useApi} from "../Context/Api.tsx";
 import {useWebsocket} from "../Hooks/useWebsocket.ts";
 import {authnDecode, authnEncode} from "../Api/common.ts";
 import {useAlert} from "../Context/Alert.tsx";
-import {Button} from "@mui/material";
+import {Button, Paper, Typography} from "@mui/material";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
@@ -104,7 +104,7 @@ export const Sign = ({id, challenge, app, signData}: SignProps) => {
     }
 
     const [ok, cancel] = useMemo(() => {
-        if(challenge.publicKey && challenge.publicKey.userVerification === 'required') {
+        if (challenge.publicKey && challenge.publicKey.userVerification === 'required') {
             return ["Sign", "Reject"]
         } else {
             return ["Ok", "Cancel"]
@@ -115,26 +115,27 @@ export const Sign = ({id, challenge, app, signData}: SignProps) => {
         <>
             {signPressed || !signData ?
                 <div className={'signLayout'}>
-                    <div className={'qr'}>
-                        <h1 style={{textAlign: 'center', color: '#FFFFFF'}}>{app.name}</h1>
-                        <QR app={app}/>
-                    </div>
+                    <Paper className={'qr'}>
+                        <h1 style={{textAlign: 'center'}}>Authenticate</h1>
+                        <QR/>
+                        <h2 style={{textAlign: 'center'}}>{app.name}</h2>
+                    </Paper>
                 </div> :
                 <div className={"displayLayout"}>
-                    <div className={'signicon'}>
-                    </div>
                     <div className={'signapp'}>
-                        <img src={app.icon} alt={app.name} width={30} height={30}/>
-                        <h1 style={{color: '#FFFFFF'}}>{app.name}</h1>
+                        <Typography variant={'h2'} component={"h2"}>{app.name}</Typography>
                     </div>
-                    <div className={'signtext'}>
-                        <Markdown remarkPlugins={[[remarkGfm, {singleTilde: true}], [remarkRehype, {}]]}>{signData?.text}</Markdown>
-                    </div>
+                    <Paper className={'signtext'}>
+                        <Markdown
+                            remarkPlugins={[[remarkGfm, {singleTilde: true}], [remarkRehype, {}]]}>{signData?.text}</Markdown>
+                    </Paper>
                     <div className={'sign'}>
-                        <Button variant={'contained'} color={'success'} size={'large'} onClick={signHandler}>{ok}</Button>
+                        <Button variant={'contained'} color={'success'} size={'large'}
+                                onClick={signHandler}>{ok}</Button>
                     </div>
                     <div className={'reject'}>
-                        <Button variant={'contained'} size={'large'} color={'error'} onClick={cancelHandler}>{cancel}</Button>
+                        <Button variant={'contained'} size={'large'} color={'error'}
+                                onClick={cancelHandler}>{cancel}</Button>
                     </div>
                 </div>
             }
