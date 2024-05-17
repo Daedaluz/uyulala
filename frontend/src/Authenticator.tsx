@@ -19,7 +19,7 @@ function Authenticator() {
     }
     let component: ReactElement
     if (createOptions) {
-        component = <CreateKey app={app} id={id} challenge={createOptions}/>
+        component = <CreateKey id={id} challenge={createOptions}/>
     } else if (assertOptions) {
         component = <Sign id={id} challenge={assertOptions} app={app} signData={signData} />
     } else {
