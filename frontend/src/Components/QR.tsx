@@ -17,9 +17,6 @@ export const QR = ({value}: QRProps) => {
         }
     }, [])
     return (
-    //    <QRCode bgColor={'#FFFFFF00'} fgColor={"#FFFFFF"} removeQrCodeBehindLogo={true} size={300}
-    //            ecLevel={'H'}
-    //            value={value ? value : `${location.toString()}`} qrStyle={'squares'} {...logoSettings} />
     <QRCode bgColor={theme.palette.background.paper} fgColor={theme.palette.text.primary} size={300}
             ecLevel={'L'}
             value={value ? value : `${location.toString()}`} qrStyle={'squares'} {...logoSettings} />

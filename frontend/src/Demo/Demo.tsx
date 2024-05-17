@@ -43,7 +43,7 @@ const UserKey = ({user, userKey}: UserKeyProps) => {
             <TableCell><AAGUID aaguid={userKey.aaguid}/></TableCell>
             <TableCell>{userKey.created}</TableCell>
             <TableCell>{userKey.lastUsed}</TableCell>
-            <TableCell><Button onClick={onDelete}>Delete Key</Button></TableCell>
+            <TableCell><Button variant="contained" onClick={onDelete}>Delete Key</Button></TableCell>
         </TableRow>
     )
 }
@@ -130,9 +130,9 @@ const UserView = ({name, verify, user, text}: UserViewProps) => {
                 </Table>
             </AccordionDetails>
             <AccordionActions>
-                <Button onClick={authenticate}>Authenticate</Button>
-                <Button onClick={addKey}>Add key</Button>
-                <Button onClick={deleteUser}>Delete user</Button>
+                <Button variant="contained" onClick={authenticate}>Authenticate</Button>
+                <Button variant="contained" onClick={addKey}>Add key</Button>
+                <Button variant="contained" onClick={deleteUser}>Delete user</Button>
             </AccordionActions>
         </Accordion>
     )
@@ -241,8 +241,8 @@ export const DemoPage = () => {
                            value={name}
                 />
                 <FormGroup style={{display: 'flex', flexDirection: 'row'}}>
-                    <Button onClick={registerUser}>Create user</Button>
-                    <Button onClick={authenticate}>Authenticate any user</Button>
+                    <Button variant="contained" onClick={registerUser} style={{marginRight: '10px'}}>Create user</Button>
+                    <Button variant="contained" onClick={authenticate}>Authenticate any user</Button>
                 </FormGroup>
             </FormGroup>
             {result &&

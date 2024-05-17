@@ -16,26 +16,41 @@ import {AlertProvider} from "./Context/Alert.tsx";
 
 const darkTheme = createTheme({
     palette: {
-        mode: 'dark',
-        background: {
-            default: '#282828',
-            paper: '#292929'
-        },
+        mode: 'light',
         text: {
-            primary: '#a0a0a0',
-            disabled: '#404040',
-            secondary: '#a2a2a2',
+            primary: "#ffffff",
+            secondary: "#FFFFFF",
+            disabled: "#AAAAAA"
         },
-        primary: colors.grey,
-        secondary: colors.grey,
         common: {
-            black: '#252525',
-            white: '#505050'
+            white: "#FFFFFF",
+            black: "#000000"
         },
-        grey: colors.grey,
-        info: colors.grey,
-        error: colors.brown,
-        warning: colors.amber
+        background: {
+            default: "#FFFFFF",
+            paper: "#a0a0a0ee"
+        },
+        primary: colors.blue,
+
+//        background: {
+//            default: '#282828',
+//            paper: '#292929'
+//        },
+//        text: {
+//            primary: '#a0a0a0',
+//            disabled: '#404040',
+//            secondary: '#a2a2a2',
+//        },
+//        primary: colors.grey,
+//        secondary: colors.grey,
+//        common: {
+//            black: '#252525',
+//            white: '#505050'
+//        },
+//        grey: colors.grey,
+//        info: colors.grey,
+//        error: colors.brown,
+//        warning: colors.amber
     }
 })
 

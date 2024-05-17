@@ -45,21 +45,6 @@ func logger(logger *slog.Logger) gin.HandlerFunc {
 	}
 }
 
-//func customCORS() gin.HandlerFunc {
-//	return func(c *gin.Context) {
-//		if c.Request.Method == "OPTIONS" {
-//			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-//			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-//			//nolint: lll
-//			c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Err, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Cookie")
-//			c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Cookie")
-//			c.Writer.Header().Set("Access-Control-Max-Age", "0")
-//		}
-//		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-//		c.Next()
-//	}
-//}
-
 func versionHandler(c *gin.Context) {
 	binfo, ok := debug.ReadBuildInfo()
 	if !ok {
