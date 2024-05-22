@@ -241,7 +241,9 @@ export const DemoPage = () => {
                            value={name}
                 />
                 <FormGroup style={{display: 'flex', flexDirection: 'row'}}>
-                    <Button variant="contained" onClick={registerUser} style={{marginRight: '10px'}}>Create user</Button>
+                    <Button variant="contained" onClick={registerUser} style={{marginRight: '10px'}}>
+                        Create user
+                    </Button>
                     <Button variant="contained" onClick={authenticate}>Authenticate any user</Button>
                 </FormGroup>
             </FormGroup>
