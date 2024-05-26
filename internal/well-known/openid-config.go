@@ -20,15 +20,24 @@ func OpenIDConfigurationHandler(c *gin.Context) {
 		issuer = viper.GetString("issuer")
 	}
 	req := &discovery.Required{
-		Issuer:                 issuer,
-		AuthorizationEndpoint:  fmt.Sprintf("%s/authorize", issuer),
-		TokenEndpoint:          fmt.Sprintf("%s/api/v1/collect", issuer),
-		JWKSURI:                fmt.Sprintf("%s/api/v1/oidc/jwkset.json", issuer),
-		ResponseTypesSupported: []string{discovery.ResponseTypeCode},
-		GrantTypesSupported:    []string{discovery.GrantTypeAuthorizationCode},
-		ScopesSupported:        []string{"openid", "offline_access"},
+		Issuer:                                 issuer,
+		AuthorizationEndpoint:                  fmt.Sprintf("%s/authorize", issuer),
+		TokenEndpoint:                          fmt.Sprintf("%s/api/v1/collect", issuer),
+		JWKSURI:                                fmt.Sprintf("%s/api/v1/oidc/jwkset.json", issuer),
+		ResponseTypesSupported:                 []string{discovery.ResponseTypeCode},
+		GrantTypesSupported:                    []string{discovery.GrantTypeAuthorizationCode, discovery.GrantTypeCIBA},
+		ScopesSupported:                        []string{"openid", "offline_access"},
+		BackChannelAuthenticationEndpoint:      fmt.Sprintf("%s/api/v1/sign", issuer),
+		BackChannelTokenDeliveryModesSupported: []string{"poll", "ping", "push"},
 	}
-	cfg := discovery.NewConfig(req)
+	opt := &discovery.Optional{
+		ACRValuesSupported: []string{
+			discovery.ACRUserPresence,
+			discovery.ACRPreferUserVerification,
+			discovery.ACRUserVerification,
+		},
+	}
+	cfg := discovery.NewConfig(req, opt)
 	cfg.UserInfoEndpoint = fmt.Sprintf("%s/api/v1/oidc/userinfo", issuer)
 	cfg.ResponseModesSupported = []string{discovery.ResponseModeQuery}
 	cfg.TokenEndpointAuthMethodsSupported = []string{discovery.TokenAuthClientSecretPost, discovery.TokenAuthClientSecretBasic}

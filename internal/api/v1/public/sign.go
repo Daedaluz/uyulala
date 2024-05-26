@@ -112,6 +112,7 @@ func signLogin(context *gin.Context, challengeID string, challenge *challengedb.
 		if r, err := url.Parse(challenge.RedirectURL); err == nil {
 			q := r.Query()
 			if oauthContext, err := url.ParseQuery(challenge.OAuth2Context); err == nil && len(oauthContext) > 0 {
+				// TODO: check CIBA ping / push modes
 				code, err := challengedb.CreateCode(context, challengeID)
 				if err != nil {
 					slog.Error("signLogin CreateCode", "error", err)

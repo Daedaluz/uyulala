@@ -26,4 +26,6 @@ func init() {
 	app.Alg = appCmd.Flags().StringP("alg", "l", "RS256", "Algorithm to use for signing tokens")
 	app.KeyID = appCmd.Flags().StringP("kid", "k", "", "Key ID to use for signing tokens")
 	app.Admin = appCmd.Flags().Bool("admin", false, "Make this application an admin application")
+	app.CIBAMode = appCmd.Flags().String("ciba", "poll", "CIBA mode for this client (poll, push, ping)")
+	app.CIBANotificationEndpoint = appCmd.Flags().String("notification", "", "Endpoint to send CIBA notifications")
 }
