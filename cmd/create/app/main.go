@@ -10,15 +10,17 @@ import (
 )
 
 var (
-	Urls        *[]string
-	Description *string
-	Icon        *string
-	AppID       *string
-	Secret      *string
-	Demo        *bool
-	Alg         *string
-	KeyID       *string
-	Admin       *bool
+	Urls                     *[]string
+	Description              *string
+	Icon                     *string
+	AppID                    *string
+	Secret                   *string
+	Demo                     *bool
+	Alg                      *string
+	KeyID                    *string
+	Admin                    *bool
+	CIBAMode                 *string
+	CIBANotificationEndpoint *string
 )
 
 func Main(_ *cobra.Command, args []string) {
@@ -77,7 +79,8 @@ func Main(_ *cobra.Command, args []string) {
 		kid = srvKey.ID
 	}
 
-	res, err := tx.Queryx(`call create_app(?, ?, ?, ?, ?, ?, ?, ?)`, *AppID, *Secret, name, *Description, *Icon, *Alg, kid, *Admin)
+	res, err := tx.Queryx(`call create_app(?, ?, ?, ?, ?, ?, ?, ?, ?)`, *AppID, *Secret, name, *Description, *Icon,
+		*CIBAMode, CIBANotificationEndpoint, *Alg, kid, *Admin)
 	if err != nil {
 		slog.Error("Create app query", "error", err)
 		_ = tx.Rollback()

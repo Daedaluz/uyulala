@@ -18,6 +18,7 @@ import (
 	"uyulala/internal/db/keydb"
 	"uyulala/internal/db/sessiondb"
 	"uyulala/internal/db/userdb"
+	"uyulala/openid/discovery"
 )
 
 func authOAuthCollect(ctx *gin.Context, app *appdb.Application, challenge *challengedb.Data, codeVerifier string) {
@@ -142,7 +143,7 @@ func ClientMiddleware() gin.HandlerFunc {
 			}
 			grantType := ctx.PostForm("grant_type")
 			switch grantType {
-			case "authorization_code":
+			case discovery.GrantTypeAuthorizationCode:
 				code := ctx.PostForm("code")
 				codeVerifier := ctx.PostForm("code_verifier")
 				ch, err := challengedb.GetChallengeByCode(ctx, code)
@@ -151,14 +152,22 @@ func ClientMiddleware() gin.HandlerFunc {
 					return
 				}
 				err = challengedb.DeleteCode(ctx, code)
-
+				if err != nil {
+					slog.Warn("Failed to delete challenge", "code", code, "err", err)
+				}
 				if ch.AppID != app.ID {
-					api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Challenge wasn't for this client", err)
+					api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Challenge wasn't for this client", nil)
 					return
 				}
 				authOAuthCollect(ctx, app, ch, codeVerifier)
-			case "refresh_token":
+			case discovery.GrantTypeRefresh:
 				authOAuthRefresh(ctx, app)
+			case discovery.GrantTypeCIBA:
+				authRequestID := ctx.PostForm("auth_req_id")
+				if authRequestID == "" {
+					api.AbortError(ctx, http.StatusUnauthorized, "unauthorized", "Missing auth_req_id", nil)
+				}
+				authCIBAFlow(ctx, app, authRequestID)
 			default:
 				api.AbortError(ctx, http.StatusBadRequest, "invalid_grant_type", fmt.Sprintf("Unsupported grant type %s", grantType), nil)
 			}
@@ -175,6 +184,10 @@ func ClientMiddleware() gin.HandlerFunc {
 			authCollect(ctx, app, password)
 		}
 	}
+}
+
+func authCIBAFlow(ctx *gin.Context, app *appdb.Application, id string) {
+	// TODO: Implement CIBA authentication
 }
 
 func AdminMiddleware() gin.HandlerFunc {

@@ -8,16 +8,18 @@ import (
 )
 
 type Application struct {
-	ID          string    `json:"id" db:"id"`
-	Name        string    `json:"name" db:"name"`
-	Created     time.Time `json:"created" db:"created"`
-	Secret      string    `json:"-" db:"secret"`
-	Description string    `json:"description" db:"description"`
-	Icon        string    `json:"icon" db:"icon"`
-	IDTokenAlg  string    `json:"idTokenAlg" db:"alg"`
-	KeyID       string    `json:"keyId" db:"kid"`
-	Admin       bool      `json:"admin" db:"is_admin"`
-	RedirectURI []string  `json:"-"`
+	ID                   string    `json:"id" db:"id"`
+	Name                 string    `json:"name" db:"name"`
+	Created              time.Time `json:"created" db:"created"`
+	Secret               string    `json:"-" db:"secret"`
+	Description          string    `json:"description" db:"description"`
+	Icon                 string    `json:"icon" db:"icon"`
+	IDTokenAlg           string    `json:"idTokenAlg" db:"alg"`
+	KeyID                string    `json:"keyId" db:"kid"`
+	Admin                bool      `json:"admin" db:"is_admin"`
+	RedirectURI          []string  `json:"-"`
+	CIBAMode             string    `json:"-" db:"ciba_mode"`
+	NotificationEndpoint string    `json:"-" db:"notification_endpoint"`
 }
 
 func GetApplication(ctx *gin.Context, appID string) (*Application, error) {

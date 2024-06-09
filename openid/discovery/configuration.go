@@ -16,6 +16,7 @@ const (
 
 const (
 	GrantTypeAuthorizationCode = "authorization_code"
+	GrantTypeCIBA              = "urn:openid:params:grant-type:ciba"
 	GrantTypeRefresh           = "refresh"
 	GrantTypeImplicit          = "implicit"
 )
@@ -36,6 +37,28 @@ const (
 	ResponseTypeCode    = "code"
 	ResponseTypeIDToken = "id_token"
 	ResponseTypeToken   = "token"
+)
+
+const (
+	ACRUserVerification       = "urn:webauthn:verify"
+	ACRUserPresence           = "urn:webauthn:presence"
+	ACRPreferUserVerification = "urn:webauthn:prefer-verify"
+
+	ACRPresenceInternal    = "urn:fido2:presence_internal"
+	ACRFingerPrintInternal = "urn:fido2:fingerprint_internal"
+	ACRPasscodeInternal    = "urn:fido2:passcode_internal"
+	ACRVoiceprintInternal  = "urn:fido2:voiceprint_internal"
+	ACRFaceprintInternal   = "urn:fido2:faceprint_internal"
+	ACRLocationInternal    = "urn:fido2:location_internal"
+	ACREyeprintInternal    = "urn:fido2:eyeprint_internal"
+	ACRPatternInternal     = "urn:fido2:pattern_internal"
+	ACRHandprintInternal   = "urn:fido2:handprint_internal"
+	ACRPasscodeExternal    = "urn:fido2:passcode_external"
+	ACRPatternExternal     = "urn:fido2:pattern_external"
+)
+
+const (
+	AMRProofOfPossessionKey = "pop"
 )
 
 type Required struct {
@@ -80,6 +103,12 @@ type Required struct {
 	// Dynamic OpenID Providers MUST support the authorization_code and implicit Grant Type values and MAY support other Grant Types.
 	// If omitted, the default value is ["authorization_code", "implicit"].
 	GrantTypesSupported []string `json:"grant_types_supported,omitempty"`
+
+	// JSON array containing one or more of the following values: poll, ping, and push.
+	BackChannelTokenDeliveryModesSupported []string `json:"backchannel_token_delivery_modes_supported,omitempty"`
+
+	// URL of the OP's Backchannel Authentication Endpoint.
+	BackChannelAuthenticationEndpoint string `json:"backchannel_authentication_endpoint,omitempty"`
 }
 
 type Optional struct {
@@ -340,6 +369,12 @@ type Full struct {
 	// URL that the OpenID Provider provides to the person registering the Client to read about OpenID Provider's terms of service.
 	// The registration process SHOULD display this URL to the person registering the Client if it is given.
 	OpTosURI string `json:"op_tos_uri,omitempty"`
+
+	// JSON array containing one or more of the following values: poll, ping, and push.
+	BackChannelTokenDeliveryModesSupported []string `json:"backchannel_token_delivery_modes_supported,omitempty"`
+
+	// URL of the OP's Backchannel Authentication Endpoint.
+	BackChannelAuthenticationEndpoint string `json:"backchannel_authentication_endpoint,omitempty"`
 }
 
 func (f *Full) AddSupportedIDTokenSigningAlg(alg string) {
@@ -348,7 +383,7 @@ func (f *Full) AddSupportedIDTokenSigningAlg(alg string) {
 	}
 }
 
-func NewConfig(config *Required) *Full {
+func NewConfig(config *Required, optional *Optional) *Full {
 	res := &Full{
 		Issuer:                                     "",
 		AuthorizationEndpoint:                      "",
@@ -361,7 +396,7 @@ func NewConfig(config *Required) *Full {
 		UserInfoEndpoint:                           "",
 		RegistrationEndpoint:                       "",
 		ResponseModesSupported:                     []string{ResponseModeQuery, ResponseModeFragment},
-		GrantTypesSupported:                        []string{GrantTypeAuthorizationCode, GrantTypeImplicit},
+		GrantTypesSupported:                        []string{GrantTypeAuthorizationCode},
 		ACRValuesSupported:                         []string{},
 		IDTokenEncryptionAlgValuesSupported:        []string{},
 		IDTokenEncryptionEncValuesSupported:        []string{},
@@ -385,9 +420,15 @@ func NewConfig(config *Required) *Full {
 		RequireRequestURIRegistration:              false,
 		OpPolicyURI:                                "",
 		OpTosURI:                                   "",
+		BackChannelTokenDeliveryModesSupported:     nil,
+		BackChannelAuthenticationEndpoint:          "",
 	}
 	x, _ := json.Marshal(config)
 	_ = json.Unmarshal(x, res)
+	if optional != nil {
+		x, _ = json.Marshal(optional)
+		_ = json.Unmarshal(x, &res)
+	}
 	return res
 }
 

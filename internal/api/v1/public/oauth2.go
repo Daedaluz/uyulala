@@ -3,6 +3,7 @@ package public
 import (
 	"encoding/base64"
 	"errors"
+	"github.com/bytedance/sonic/utf8"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -17,6 +18,7 @@ import (
 	"uyulala/internal/db/appdb"
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
+	"uyulala/openid/discovery"
 )
 
 func parseRedirectURI(vars url.Values) (*url.URL, error) {
@@ -90,23 +92,27 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Missing state", nil)
 		return
 	}
-
-	userVerification := form.Get("user_verification")
-	if userVerification == "" {
+	var opts []webauthn.LoginOption
+	acrValues := strings.FieldsFunc(form.Get("acr_values"), func(r rune) bool {
+		switch r {
+		case ' ', '\n', '\r', '\t':
+			return true
+		}
+		return false
+	})
+	userVerification := "preferred"
+	if slices.Contains(acrValues, discovery.ACRUserPresence) {
+		userVerification = "discouraged"
+	}
+	if slices.Contains(acrValues, discovery.ACRPreferUserVerification) {
 		userVerification = "preferred"
 	}
-	if prompt := form.Get("prompt"); prompt != "" {
-		switch prompt {
-		case "consent", "login":
-			userVerification = "required"
-		case "none":
-			userVerification = "discouraged"
-		}
+	if slices.Contains(acrValues, discovery.ACRUserVerification) {
+		userVerification = "required"
 	}
-	opts := []webauthn.LoginOption{
-		webauthn.WithUserVerification(protocol.UserVerificationRequirement(userVerification)),
-	}
-	userID := form.Get("user_id")
+	opts = append(opts, webauthn.WithUserVerification(protocol.UserVerificationRequirement(userVerification)))
+
+	userID := form.Get("login_hint")
 	if userID != "" {
 		keys, err := userdb.GetUserKeyDescriptors(ctx, userID)
 		if err != nil {
@@ -120,7 +126,11 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 		opts = append(opts, webauthn.WithAllowedCredentials(keys))
 	}
 
-	signatureText := form.Get("text")
+	bindingMessage := form.Get("binding_message")
+	if !utf8.ValidateString(bindingMessage) {
+		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid binding_message, must be utf8", nil)
+		return
+	}
 	signatureDataText := form.Get("data")
 	var signatureData []byte
 	if signatureDataText != "" {
@@ -148,7 +158,7 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 
 	challenge, err := challengedb.CreateChallenge(ctx, "webauthn.get", client.ID, time.Now().Add(time.Minute*5),
 		login, session,
-		signatureText, signatureData, redirectURI.String())
+		bindingMessage, signatureData, redirectURI.String())
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return

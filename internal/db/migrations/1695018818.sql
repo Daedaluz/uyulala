@@ -161,15 +161,17 @@ END;
 
 CREATE OR REPLACE TABLE applications
 (
-    id          VARCHAR(36) PRIMARY KEY,
-    created     DATETIME                                                    NOT NULL DEFAULT current_timestamp(),
-    name        VARCHAR(100)                                                NOT NULL,
-    secret      VARCHAR(36)                                                 NOT NULL,
-    description VARCHAR(1024)                                               NOT NULL,
-    icon        VARCHAR(2048)                                               NOT NULL,
-    is_admin    BOOLEAN                                                     NOT NULL DEFAULT FALSE,
-    alg         ENUM ('ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512') NOT NULL DEFAULT 'RS256',
-    kid         VARCHAR(16)                                                 NOT NULL,
+    id                    VARCHAR(36) PRIMARY KEY,
+    created               DATETIME                                                    NOT NULL DEFAULT current_timestamp(),
+    name                  VARCHAR(100)                                                NOT NULL,
+    secret                VARCHAR(36)                                                 NOT NULL,
+    description           VARCHAR(1024)                                               NOT NULL,
+    icon                  VARCHAR(2048)                                               NOT NULL,
+    is_admin              BOOLEAN                                                     NOT NULL DEFAULT FALSE,
+    ciba_mode             ENUM ('poll', 'push', 'ping')                               NOT NULL DEFAULT 'poll',
+    notification_endpoint VARCHAR(2048)                                               NOT NULL DEFAULT '',
+    alg                   ENUM ('ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512') NOT NULL DEFAULT 'RS256',
+    kid                   VARCHAR(16)                                                 NOT NULL,
     CONSTRAINT FOREIGN KEY applications_kid (kid) REFERENCES server_keys (kid)
 );
 
@@ -182,11 +184,13 @@ CREATE OR REPLACE TABLE application_redirect_urls
 
 CREATE OR REPLACE PROCEDURE create_app(IN app_id VARCHAR(36), IN secret VARCHAR(36), IN app_name VARCHAR(100),
                                        IN description VARCHAR(250), IN icon VARCHAR(1024),
+                                       IN ciba_mode VARCHAR(20),
+                                       IN notification_endpoint VARCHAR(2048),
                                        IN alg ENUM ('ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512'),
                                        IN kid VARCHAR(16), IN is_admin BOOLEAN)
 BEGIN
-    INSERT INTO applications (id, name, secret, description, icon, alg, kid, is_admin)
-    VALUES (app_id, app_name, secret, description, icon, alg, kid, is_admin);
+    INSERT INTO applications (id, name, secret, description, icon, alg, kid, is_admin, ciba_mode, notification_endpoint)
+    VALUES (app_id, app_name, secret, description, icon, alg, kid, is_admin, ciba_mode, notification_endpoint);
     SELECT app_id, secret;
 END;
 
@@ -203,6 +207,8 @@ BEGIN
            secret,
            description,
            icon,
+           ciba_mode,
+           notification_endpoint,
            is_admin,
            alg,
            kid
@@ -266,7 +272,7 @@ CREATE OR REPLACE TABLE challenges
 
 CREATE OR REPLACE TABLE challenge_codes
 (
-    code VARCHAR(36) PRIMARY KEY,
+    code         VARCHAR(36) PRIMARY KEY,
     challenge_id VARCHAR(36),
     CONSTRAINT FOREIGN KEY challenge_codes_challenge_id (challenge_id) REFERENCES challenges (id) ON DELETE CASCADE
 );
@@ -294,13 +300,13 @@ BEGIN
            oauth2_context,
            status
     FROM challenge_codes c
-    RIGHT JOIN challenges c2 on c.challenge_id = c2.id
+             RIGHT JOIN challenges c2 on c.challenge_id = c2.id
     WHERE c.code = code;
 END;
 
 CREATE OR REPLACE PROCEDURE delete_code(IN code VARCHAR(36))
 BEGIN
-    DELETE FROM challenge_codes  WHERE code = code;
+    DELETE FROM challenge_codes WHERE code = code;
 END;
 
 CREATE OR REPLACE PROCEDURE create_challenge(IN challenge_id VARCHAR(36), IN type VARCHAR(36), IN app_id VARCHAR(36),

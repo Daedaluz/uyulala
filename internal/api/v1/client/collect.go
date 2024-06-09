@@ -24,6 +24,7 @@ import (
 	"uyulala/internal/db/keydb"
 	"uyulala/internal/db/sessiondb"
 	"uyulala/internal/db/userdb"
+	"uyulala/openid/discovery"
 )
 
 type SignatureData struct {
@@ -228,7 +229,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 		return
 	}
 	switch context.PostForm("grant_type") {
-	case "authorization_code":
+	case discovery.GrantTypeAuthorizationCode:
 		challenge := application.GetCurrentChallenge(context)
 		if !challenge.ValidateCollect(context) {
 			return
@@ -267,6 +268,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 		}
 
 		if slices.Contains(scopes, "openid") {
+			// TODO: add ACR data
 			idToken, err = createIDToken(context, sessionID, userKey.UserID, oauth2Ctx.Get("nonce"), app, appKey, response)
 			if err != nil {
 				return
@@ -278,7 +280,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			return
 		}
 
-	case "refresh_token":
+	case discovery.GrantTypeRefresh:
 		session := application.GetCurrentSession(context)
 		scopes := strings.FieldsFunc(session.RequestedScopes, func(c rune) bool {
 			switch c {
@@ -311,6 +313,8 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 			return
 		}
+	case discovery.GrantTypeCIBA:
+		// TODO: Implement collect for CIBA flow
 	}
 
 	context.JSON(http.StatusOK, &TokenResponse{
