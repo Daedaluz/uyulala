@@ -101,7 +101,7 @@ func createBIDChallenge(ctx *gin.Context) {
 		return
 	}
 
-	if !utf8.ValidateString(req.Text) {
+	if req.Text != "" && !utf8.ValidateString(req.Text) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid text, must be utf8", nil)
 		return
 	}
