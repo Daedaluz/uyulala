@@ -63,7 +63,7 @@ items:
       parentRefs:
         - group: gateway.networking.k8s.io
           kind: Gateway
-          name: inits-se
+          name: https-inits-se
           namespace: ingress
       rules:
         - backendRefs:

@@ -43,6 +43,22 @@ const (
 	ACRUserVerification       = "urn:webauthn:verify"
 	ACRUserPresence           = "urn:webauthn:presence"
 	ACRPreferUserVerification = "urn:webauthn:prefer-verify"
+
+	ACRPresenceInternal    = "urn:fido2:presence_internal"
+	ACRFingerPrintInternal = "urn:fido2:fingerprint_internal"
+	ACRPasscodeInternal    = "urn:fido2:passcode_internal"
+	ACRVoiceprintInternal  = "urn:fido2:voiceprint_internal"
+	ACRFaceprintInternal   = "urn:fido2:faceprint_internal"
+	ACRLocationInternal    = "urn:fido2:location_internal"
+	ACREyeprintInternal    = "urn:fido2:eyeprint_internal"
+	ACRPatternInternal     = "urn:fido2:pattern_internal"
+	ACRHandprintInternal   = "urn:fido2:handprint_internal"
+	ACRPasscodeExternal    = "urn:fido2:passcode_external"
+	ACRPatternExternal     = "urn:fido2:pattern_external"
+)
+
+const (
+	AMRProofOfPossessionKey = "pop"
 )
 
 type Required struct {
