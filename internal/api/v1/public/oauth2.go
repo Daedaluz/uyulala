@@ -127,7 +127,7 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 	}
 
 	bindingMessage := form.Get("binding_message")
-	if !utf8.ValidateString(bindingMessage) {
+	if bindingMessage != "" && !utf8.ValidateString(bindingMessage) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid binding_message, must be utf8", nil)
 		return
 	}
