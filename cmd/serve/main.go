@@ -113,6 +113,8 @@ func setupGinEngine(db *sqlx.DB) *gin.Engine {
 		staticPath := fmt.Sprintf("%s/index.html", path.Clean(viper.GetString("http.staticPath")))
 		slog.Info("NoRoute", slog.String("path", c.Request.URL.Path))
 		slog.Info("StaticPath", slog.String("path", staticPath))
+		c.Header("Cache-Control", viper.GetString("http.cache_control"))
+		c.Header("Referer-Policy", viper.GetString("http.referer_policy"))
 		c.File(staticPath)
 	})
 

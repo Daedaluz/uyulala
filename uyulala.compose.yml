@@ -8,6 +8,11 @@ http:
   # The address to listen on
   addr: ":8080"
 
+  # Referer setting
+  referer_policy: "origin"
+  # Cache control setting
+  cache_control: "no-cache, no-store, must-revalidate"
+
 # Database settings
 database:
   # The database connection DSN
@@ -58,6 +63,8 @@ accessToken:
   extension:
     scope:
       - authorization
+
+
 tls:
   enable: true
   cert: "/tls/server.crt"
