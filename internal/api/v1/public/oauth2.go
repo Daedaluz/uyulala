@@ -3,7 +3,6 @@ package public
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/bytedance/sonic/utf8"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -13,6 +12,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 	"uyulala/internal/api"
 	"uyulala/internal/authn"
 	"uyulala/internal/db/appdb"
@@ -127,7 +127,7 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 	}
 
 	bindingMessage := form.Get("binding_message")
-	if bindingMessage != "" && !utf8.ValidateString(bindingMessage) {
+	if bindingMessage != "" && !utf8.ValidString(bindingMessage) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid binding_message, must be utf8", nil)
 		return
 	}

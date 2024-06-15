@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/bytedance/sonic/utf8"
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -10,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 	"uyulala/internal/api"
 	"uyulala/internal/api/application"
 	"uyulala/internal/authn"
@@ -101,7 +101,7 @@ func createBIDChallenge(ctx *gin.Context) {
 		return
 	}
 
-	if req.Text != "" && !utf8.ValidateString(req.Text) {
+	if req.Text != "" && !utf8.ValidString(req.Text) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid text, must be utf8", nil)
 		return
 	}
@@ -228,7 +228,7 @@ func createCIBAChallenge(ctx *gin.Context) {
 		timeout = i
 	}
 
-	if bindingMessage != "" && !utf8.ValidateString(bindingMessage) {
+	if bindingMessage != "" && !utf8.ValidString(bindingMessage) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid binding_message, must be utf8", nil)
 		return
 	}
