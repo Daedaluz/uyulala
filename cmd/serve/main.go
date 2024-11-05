@@ -3,16 +3,6 @@ package serve
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-webauthn/webauthn/metadata"
-	"github.com/jmoiron/sqlx"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"gitlab.com/daedaluz/gindb"
-	"golang.org/x/net/context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -25,6 +15,16 @@ import (
 	"uyulala/internal/db/migrations"
 	"uyulala/internal/trust"
 	wellknown "uyulala/internal/well-known"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"gitlab.com/daedaluz/gindb"
+	"golang.org/x/net/context"
 )
 
 func logger(logger *slog.Logger) gin.HandlerFunc {
@@ -70,14 +70,14 @@ func versionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func populateMDS() {
-	slog.Info("Populating fido alliance metadata...")
-	if err := metadata.PopulateMetadata(viper.GetString("webauthn.mds3")); err != nil {
-		slog.Error("Failed to populate metadata", "error", err)
-		os.Exit(1)
-	}
-	slog.Info("Populated!")
-}
+//func populateMDS() {
+//	slog.Info("Populating fido alliance metadata...")
+//	if err := metadata.PopulateMetadata(viper.GetString("webauthn.mds3")); err != nil {
+//		slog.Error("Failed to populate metadata", "error", err)
+//		os.Exit(1)
+//	}
+//	slog.Info("Populated!")
+//}
 
 func prepareDatabase() *sqlx.DB {
 	db, err := gindb.Open("mysql", viper.GetString("database.dsn"))
@@ -139,7 +139,7 @@ func Main(cmd *cobra.Command, args []string) {
 	gin.SetMode(gin.ReleaseMode)
 
 	db := prepareDatabase()
-	populateMDS()
+	//populateMDS()
 
 	engine := setupGinEngine(db)
 
