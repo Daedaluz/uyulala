@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.22-alpine3.19 AS gobuilder
+FROM golang:1.23.2-alpine3.19 AS gobuilder
 ADD . /src/
 WORKDIR /src
 RUN apk add --no-cache git && go mod download && go build -o /uyulala
