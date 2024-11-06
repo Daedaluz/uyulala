@@ -36,6 +36,9 @@ webauthn:
   mds3: https://mds.fidoalliance.org
   attachment: ""
 
+ciba:
+  qrTemplate: "http://localhost:8080/?challenge={.challegeID}"
+
 # userApi settings
 userApi:
   # Trusted issuer for the user API.

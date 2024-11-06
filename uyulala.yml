@@ -16,6 +16,9 @@ webauthn:
   debug: true
   mds3: https://mds.fidoalliance.org
 
+ciba:
+  qrTemplate: "http://localhost:8080/?challenge={.challegeID}"
+
 issuer: "http://localhost:8080"
 
 userApi:

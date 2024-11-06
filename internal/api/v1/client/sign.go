@@ -1,13 +1,11 @@
 package client
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"net/http"
 	"slices"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 	"unicode/utf8"
 	"uyulala/internal/api"
@@ -16,6 +14,11 @@ import (
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
 	"uyulala/openid/discovery"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/spf13/viper"
 )
 
 type CreateBIDChallengeRequest struct {
@@ -37,6 +40,8 @@ type CIBAAuthenticationResponse struct {
 	RequestID string `json:"auth_req_id"`
 	ExpiresIn uint64 `json:"expires_in"`
 	Interval  uint64 `json:"interval,omitempty"`
+	QRData    string `json:"qr_data,omitempty"` // CIBA Extension
+	QRType    string `json:"qr_type,omitempty"` // CIBA Extension
 }
 
 func (c CreateCIBAChallengeRequest) WebAuthnID() []byte {
@@ -222,7 +227,7 @@ func createCIBAChallenge(ctx *gin.Context) {
 	if requestedExpiry != "" {
 		i, err := strconv.ParseUint(requestedExpiry, 0, 64)
 		if err != nil {
-			api.AbortError(ctx, http.StatusInternalServerError, "invalid_request", "Error parsing requested_expiry", err)
+			api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Error parsing requested_expiry", err)
 			return
 		}
 		timeout = i
@@ -239,9 +244,26 @@ func createCIBAChallenge(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
+
+	cibaURLTemplate := template.New("")
+	cibaURLTemplate, err = cibaURLTemplate.Parse(viper.GetString("ciba.urlTemplate"))
+	if err != nil {
+		api.AbortError(ctx, http.StatusInternalServerError, "url_template", "Failed to parse the url template", err)
+		return
+	}
+	cibaURLBuilder := &strings.Builder{}
+	if err := cibaURLTemplate.Execute(cibaURLBuilder, map[string]any{
+		"challengeID": challenge,
+	}); err != nil {
+		api.AbortError(ctx, http.StatusInternalServerError, "url_template", "Failed to execute the url template", err)
+		return
+	}
+
 	resp := &CIBAAuthenticationResponse{
 		RequestID: challenge,
 		ExpiresIn: timeout,
+		QRData:    cibaURLBuilder.String(),
+		QRType:    "url",
 	}
 	if app.CIBAMode == "poll" || app.CIBAMode == "ping" {
 		resp.Interval = 1

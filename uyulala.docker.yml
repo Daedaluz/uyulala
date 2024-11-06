@@ -1,3 +1,6 @@
+# Issuer
+issuer: http://localhost
+
 # HTTP settings
 http:
   # The path to the static files, should point to a location with the front-end authenticator.
@@ -28,6 +31,9 @@ webauthn:
   attestation: direct
   # MDS3 Metadata url
   mds3: https://mds.fidoalliance.org
+
+ciba:
+  qrTemplate: "http://localhost:8080/?challenge={.challegeID}"
 
 
 # userApi settings
