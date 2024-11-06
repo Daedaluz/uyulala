@@ -163,7 +163,7 @@ func ClientMiddleware() gin.HandlerFunc {
 				authOAuthCollect(ctx, app, ch, codeVerifier)
 			case discovery.GrantTypeRefresh:
 				authOAuthRefresh(ctx, app)
-			case discovery.GrantTypeCIBA:
+			case discovery.GrantTypeCIBA, "":
 				authRequestID := ctx.PostForm("auth_req_id")
 				authCIBAFlow(ctx, app, authRequestID)
 			default:

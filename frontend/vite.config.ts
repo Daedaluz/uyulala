@@ -22,6 +22,9 @@ const configs = {
                 cert: getFile('../tls/server.crt'),
             },
             proxy: {
+                '/.well-known': {
+                    target: 'http://localhost:8080',
+                },
                 '/api': {
                     target: 'http://localhost:8080',
                 },

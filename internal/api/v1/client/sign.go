@@ -256,7 +256,9 @@ func createCIBAChallenge(ctx *gin.Context) {
 		return
 	}
 
-	urlTemplate, err := template.New("").Parse(viper.GetString("ciba.urlTemplate"))
+	urlTemplate := template.New("")
+	urlTemplate = urlTemplate.Delims("{", "}")
+	urlTemplate, err = urlTemplate.Parse(viper.GetString("ciba.qrTemplate"))
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return

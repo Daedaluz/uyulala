@@ -320,7 +320,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 			return
 		}
-	case discovery.GrantTypeCIBA:
+	case discovery.GrantTypeCIBA, "":
 		challenge := application.GetCurrentChallenge(context)
 		if !challenge.ValidateCollect(context) {
 			return

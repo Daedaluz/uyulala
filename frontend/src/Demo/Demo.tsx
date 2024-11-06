@@ -58,7 +58,7 @@ const AAGUID = ({aaguid}: { aaguid: string }) => {
 
     const content = metadata !== null ? <>
         <InfoRounded fontSize={'small'} onClick={handleShow}/>
-        <img alt="metaImage" src={metadata.metadataStatement.icon} height={32} width={32}/>
+        <img alt="metaImage" src={metadata.metadataStatement.icon ?? `data:${metadata.metadataStatement.Icon.Opaque}`} height={32} width={32}/>
         {metadata.metadataStatement.description}
         <Popover open={show} onClose={() => setShow(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}>
             <pre>
