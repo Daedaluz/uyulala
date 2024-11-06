@@ -2,16 +2,17 @@ package challengedb
 
 import (
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/google/uuid"
-	"gitlab.com/daedaluz/gindb"
 	"net/http"
 	"net/url"
 	"time"
 	api2 "uyulala/internal/api"
 	"uyulala/internal/db"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
+	"gitlab.com/daedaluz/gindb"
 )
 
 const (
@@ -216,6 +217,42 @@ func CreateCode(ctx *gin.Context, challengeID string) (string, error) {
 func DeleteCode(ctx *gin.Context, code string) error {
 	tx := gindb.GetTX(ctx)
 	x, err := tx.Exec(`call delete_code(?)`, code)
+	if err != nil {
+		return err
+	}
+	n, err := x.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func CreateCIBARequestID(ctx *gin.Context, challengeID string) (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	tx := gindb.GetTX(ctx)
+	_, err = tx.Exec(`call create_ciba_request_id(?, ?)`, id.String(), challengeID)
+	return id.String(), err
+}
+
+func GetChallengeByCIBARequestID(ctx *gin.Context, requestID string) (ch *Data, err error) {
+	ch = &Data{}
+	tx := gindb.GetTX(ctx)
+	res := tx.QueryRowx(`call get_challenge_by_ciba_request_id(?)`, requestID)
+	if err := res.StructScan(ch); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func DeleteCIBARequest(ctx *gin.Context, requestID string) error {
+	tx := gindb.GetTX(ctx)
+	x, err := tx.Exec(`call delete_ciba_request(?)`, requestID)
 	if err != nil {
 		return err
 	}

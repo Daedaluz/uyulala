@@ -5,10 +5,6 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/spf13/viper"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -19,6 +15,11 @@ import (
 	"uyulala/internal/db/sessiondb"
 	"uyulala/internal/db/userdb"
 	"uyulala/openid/discovery"
+
+	"github.com/gin-gonic/gin"
+	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/viper"
 )
 
 func authOAuthCollect(ctx *gin.Context, app *appdb.Application, challenge *challengedb.Data, codeVerifier string) {
@@ -164,9 +165,6 @@ func ClientMiddleware() gin.HandlerFunc {
 				authOAuthRefresh(ctx, app)
 			case discovery.GrantTypeCIBA:
 				authRequestID := ctx.PostForm("auth_req_id")
-				if authRequestID == "" {
-					api.AbortError(ctx, http.StatusUnauthorized, "unauthorized", "Missing auth_req_id", nil)
-				}
 				authCIBAFlow(ctx, app, authRequestID)
 			default:
 				api.AbortError(ctx, http.StatusBadRequest, "invalid_grant_type", fmt.Sprintf("Unsupported grant type %s", grantType), nil)
@@ -186,8 +184,23 @@ func ClientMiddleware() gin.HandlerFunc {
 	}
 }
 
-func authCIBAFlow(ctx *gin.Context, app *appdb.Application, id string) {
-	// TODO: Implement CIBA authentication
+func authCIBAFlow(ctx *gin.Context, app *appdb.Application, requestID string) {
+	if requestID != "" {
+		ch, err := challengedb.GetChallengeByCIBARequestID(ctx, requestID)
+		if err != nil {
+			api.AbortError(ctx, http.StatusUnauthorized, "no_request_id", "No such requestID", err)
+			return
+		}
+		if ch.AppID != app.ID {
+			api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Challenge wasn't for this client", nil)
+			return
+		}
+		if err := challengedb.DeleteCIBARequest(ctx, requestID); err != nil {
+			slog.Warn("Failed to delete challenge", "requestID", requestID, "err", err)
+		}
+		ctx.Set("challenge", ch)
+	}
+	ctx.Set("application", app)
 }
 
 func AdminMiddleware() gin.HandlerFunc {

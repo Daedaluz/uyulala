@@ -18,7 +18,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/spf13/viper"
 )
 
 type CreateBIDChallengeRequest struct {
@@ -245,25 +244,33 @@ func createCIBAChallenge(ctx *gin.Context) {
 		return
 	}
 
-	cibaURLTemplate := template.New("")
-	cibaURLTemplate, err = cibaURLTemplate.Parse(viper.GetString("ciba.urlTemplate"))
-	if err != nil {
-		api.AbortError(ctx, http.StatusInternalServerError, "url_template", "Failed to parse the url template", err)
+	if err := challengedb.SetOAuth2Context(ctx, challenge, form.Encode()); err != nil {
+		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	cibaURLBuilder := &strings.Builder{}
-	if err := cibaURLTemplate.Execute(cibaURLBuilder, map[string]any{
-		"challengeID": challenge,
-	}); err != nil {
-		api.AbortError(ctx, http.StatusInternalServerError, "url_template", "Failed to execute the url template", err)
+
+	cibaRequestID, err := challengedb.CreateCIBARequestID(ctx, challenge)
+	if err != nil {
+		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
+		return
+	}
+
+	urlTemplate, err := template.New("").Parse(viper.GetString("ciba.urlTemplate"))
+	if err != nil {
+		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
+		return
+	}
+	var url strings.Builder
+	if err := urlTemplate.Execute(&url, map[string]string{"challengeId": challenge}); err != nil {
+		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
 
 	resp := &CIBAAuthenticationResponse{
-		RequestID: challenge,
+		RequestID: cibaRequestID,
 		ExpiresIn: timeout,
-		QRData:    cibaURLBuilder.String(),
 		QRType:    "url",
+		QRData:    url.String(),
 	}
 	if app.CIBAMode == "poll" || app.CIBAMode == "ping" {
 		resp.Interval = 1

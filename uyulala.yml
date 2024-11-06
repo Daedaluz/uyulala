@@ -21,6 +21,9 @@ ciba:
 
 issuer: "http://localhost:8080"
 
+ciba:
+  urlTemplate: "http://localhost:8080/authorize?challenge={.challengeId}"
+
 userApi:
   trustedIssuer: ""
 
