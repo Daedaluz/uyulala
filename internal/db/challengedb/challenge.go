@@ -103,17 +103,17 @@ func (c *Data) Expired() bool {
 
 func (c *Data) Validate(ctx *gin.Context) bool {
 	if c.Signed.Valid {
-		api2.AbortError(ctx, http.StatusBadRequest, "signed", "Challenge has already been signed", nil)
+		api2.AbortError(ctx, http.StatusTooManyRequests, "signed", "Challenge has already been signed", nil)
 		return false
 	}
 
 	if c.Status == StatusRejected {
-		api2.AbortError(ctx, http.StatusBadRequest, "rejected", "Challenge has already been rejected", nil)
+		api2.AbortError(ctx, http.StatusTooManyRequests, "rejected", "Challenge has already been rejected", nil)
 		return false
 	}
 
 	if c.Expired() {
-		api2.AbortError(ctx, http.StatusBadRequest, "expired", "Challenge has expired", nil)
+		api2.AbortError(ctx, http.StatusGone, "expired", "Challenge has expired", nil)
 		return false
 	}
 	return true
@@ -121,18 +121,18 @@ func (c *Data) Validate(ctx *gin.Context) bool {
 
 func (c *Data) ValidateCollect(ctx *gin.Context) bool {
 	if c.Expired() {
-		api2.StatusResponse(ctx, http.StatusBadRequest, "expired", "Challenge has expired")
+		api2.StatusResponse(ctx, http.StatusGone, "expired", "Challenge has expired")
 		return false
 	}
 	switch c.Status {
 	case StatusPending:
-		api2.StatusResponse(ctx, http.StatusOK, "pending", "Challenge has not been signed yet")
+		api2.StatusResponse(ctx, http.StatusTooEarly, "pending", "Challenge has not been signed yet")
 	case StatusViewed:
-		api2.StatusResponse(ctx, http.StatusOK, "viewed", "Challenge has not been signed yet")
+		api2.StatusResponse(ctx, http.StatusTooEarly, "viewed", "Challenge has not been signed yet")
 	case StatusRejected:
-		api2.StatusResponse(ctx, http.StatusOK, "rejected", "Challenge has been rejected")
+		api2.StatusResponse(ctx, http.StatusTooManyRequests, "rejected", "Challenge has been rejected")
 	case StatusCollected:
-		api2.StatusResponse(ctx, http.StatusBadRequest, "collected", "Challenge has already been collected")
+		api2.StatusResponse(ctx, http.StatusTooManyRequests, "collected", "Challenge has already been collected")
 	case StatusSigned:
 		return true
 	default:
