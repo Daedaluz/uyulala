@@ -164,6 +164,10 @@ func createCIBAChallenge(ctx *gin.Context) {
 		}
 		return false
 	})
+	if len(scopes) == 0 {
+		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Scope is required", nil)
+		return
+	}
 	clientNotificationToken := form.Get("client_notification_token")
 	acrValues := strings.FieldsFunc(form.Get("acr_values"), func(r rune) bool {
 		switch r {

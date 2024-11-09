@@ -207,7 +207,7 @@ func createAccessToken(ctx *gin.Context, sessionID, userID string, key jwk.Key, 
 
 type TokenResponse struct {
 	AccessToken  string `json:"access_token,omitempty"`
-	Scope        string `json:"scope"`
+	Scope        string `json:"scope,omitempty"`
 	IDToken      string `json:"id_token,omitempty"`
 	TokenType    string `json:"token_type,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty" `
@@ -358,6 +358,10 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 				api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 				return
 			}
+			accessToken, err = createAccessToken(context, sessionID, userKey.UserID, appKey, app, response)
+			if err != nil {
+				return
+			}
 		}
 
 		if slices.Contains(scopes, "openid") {
@@ -369,10 +373,6 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			}
 		}
 
-		accessToken, err = createAccessToken(context, sessionID, userKey.UserID, appKey, app, response)
-		if err != nil {
-			return
-		}
 	}
 	context.JSON(http.StatusOK, &TokenResponse{
 		AccessToken:  accessToken,
