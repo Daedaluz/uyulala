@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-	api2 "uyulala/internal/api"
+	"uyulala/internal/api"
 	"uyulala/internal/db"
 
 	"github.com/gin-gonic/gin"
@@ -103,17 +103,17 @@ func (c *Data) Expired() bool {
 
 func (c *Data) Validate(ctx *gin.Context) bool {
 	if c.Signed.Valid {
-		api2.AbortError(ctx, http.StatusTooManyRequests, "signed", "Challenge has already been signed", nil)
+		api.AbortError(ctx, http.StatusBadRequest, "signed", "Challenge has already been signed", nil)
 		return false
 	}
 
 	if c.Status == StatusRejected {
-		api2.AbortError(ctx, http.StatusTooManyRequests, "rejected", "Challenge has already been rejected", nil)
+		api.AbortError(ctx, http.StatusBadRequest, "access_denied", "Challenge has already been rejected", nil)
 		return false
 	}
 
 	if c.Expired() {
-		api2.AbortError(ctx, http.StatusGone, "expired", "Challenge has expired", nil)
+		api.AbortError(ctx, http.StatusBadRequest, "expired_token", "Challenge has expired", nil)
 		return false
 	}
 	return true
@@ -121,22 +121,22 @@ func (c *Data) Validate(ctx *gin.Context) bool {
 
 func (c *Data) ValidateCollect(ctx *gin.Context) bool {
 	if c.Expired() {
-		api2.StatusResponse(ctx, http.StatusGone, "expired", "Challenge has expired")
+		api.StatusResponse(ctx, http.StatusBadRequest, "expired_token", "Challenge has expired")
 		return false
 	}
 	switch c.Status {
 	case StatusPending:
-		api2.StatusResponse(ctx, http.StatusTooEarly, "pending", "Challenge has not been signed yet")
+		api.StatusResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to view the challenge")
 	case StatusViewed:
-		api2.StatusResponse(ctx, http.StatusTooEarly, "viewed", "Challenge has not been signed yet")
+		api.StatusResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to sign the challenge")
 	case StatusRejected:
-		api2.StatusResponse(ctx, http.StatusTooManyRequests, "rejected", "Challenge has been rejected")
+		api.StatusResponse(ctx, http.StatusBadRequest, "access_denied", "Challenge has been rejected")
 	case StatusCollected:
-		api2.StatusResponse(ctx, http.StatusTooManyRequests, "collected", "Challenge has already been collected")
+		api.StatusResponse(ctx, http.StatusBadRequest, "collected", "Challenge has already been collected")
 	case StatusSigned:
 		return true
 	default:
-		api2.StatusResponse(ctx, http.StatusBadRequest, "invalid_status", "Invalid challenge status")
+		api.StatusResponse(ctx, http.StatusInternalServerError, "invalid_status", "Invalid challenge status")
 	}
 	return false
 }

@@ -188,11 +188,11 @@ func authCIBAFlow(ctx *gin.Context, app *appdb.Application, requestID string) {
 	if requestID != "" {
 		ch, err := challengedb.GetChallengeByCIBARequestID(ctx, requestID)
 		if err != nil {
-			api.AbortError(ctx, http.StatusUnauthorized, "no_request_id", "No such requestID", err)
+			api.AbortError(ctx, http.StatusBadRequest, "invalid_grant", "No such auth_req_id", err)
 			return
 		}
 		if ch.AppID != app.ID {
-			api.AbortError(ctx, http.StatusUnauthorized, "no_challenge", "Challenge wasn't for this client", nil)
+			api.AbortError(ctx, http.StatusBadRequest, "invalid_grant", "This auth_req_id was not issued for this client", nil)
 			return
 		}
 		if err := challengedb.DeleteCIBARequest(ctx, requestID); err != nil {

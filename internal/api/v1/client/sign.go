@@ -18,6 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/viper"
 )
 
@@ -150,6 +151,32 @@ func createBIDChallenge(ctx *gin.Context) {
 	api.ChallengeResponse(ctx, challenge)
 }
 
+func getUserHint(ctx *gin.Context) (string, error) {
+	loginHint := ctx.Request.Form.Get("login_hint")
+	loginHintToken := ctx.Request.Form.Get("login_hint_token")
+	idTokenHint := ctx.Request.Form.Get("id_token_hint")
+	if loginHint != "" {
+		return loginHint, nil
+	}
+	if idTokenHint != "" || loginHintToken != "" {
+		var token jwt.Token
+		var err error
+		if idTokenHint != "" {
+			token, err = jwt.Parse([]byte(idTokenHint), jwt.WithValidate(true))
+		} else {
+			token, err = jwt.Parse([]byte(loginHintToken), jwt.WithValidate(true))
+		}
+		if err != nil {
+			api.AbortError(ctx, http.StatusBadRequest, "expired_login_hint_token", "Invalid token", err)
+			return "", err
+		}
+		if sub, ok := token.Get("sub"); ok {
+			return sub.(string), nil
+		}
+	}
+	return "", nil
+}
+
 func createCIBAChallenge(ctx *gin.Context) {
 	if err := ctx.Request.ParseForm(); err != nil {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid request", err)
@@ -176,7 +203,7 @@ func createCIBAChallenge(ctx *gin.Context) {
 		}
 		return false
 	})
-	loginHint := form.Get("login_hint")
+
 	bindingMessage := form.Get("binding_message")
 	requestedExpiry := form.Get("requested_expiry")
 	if !slices.Contains(scopes, "openid") {
@@ -199,15 +226,18 @@ func createCIBAChallenge(ctx *gin.Context) {
 		userVerification = "required"
 	}
 	opts = append(opts, webauthn.WithUserVerification(protocol.UserVerificationRequirement(userVerification)))
-
-	if loginHint != "" {
+	var loginHint string
+	var err error
+	if loginHint, err = getUserHint(ctx); err != nil {
+		return
+	} else if loginHint != "" {
 		keys, err := userdb.GetUserKeyDescriptors(ctx, loginHint)
 		if err != nil {
 			api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 			return
 		}
 		if len(keys) == 0 {
-			api.AbortError(ctx, http.StatusBadRequest, "no_keys", "User has no keys", nil)
+			api.AbortError(ctx, http.StatusBadRequest, "unknown_user_id", "Couldn't find the hinted user or the user does not have any associated keys", nil)
 			return
 		}
 		opts = append(opts, webauthn.WithAllowedCredentials(keys))
@@ -216,7 +246,6 @@ func createCIBAChallenge(ctx *gin.Context) {
 	cfg := authn.CreateWebauthnConfig()
 	var login *protocol.CredentialAssertion
 	var sessionData *webauthn.SessionData
-	var err error
 	if loginHint != "" {
 		login, sessionData, err = cfg.BeginLogin(&CreateCIBAChallengeRequest{ctx: ctx, UserID: loginHint}, opts...)
 	} else {

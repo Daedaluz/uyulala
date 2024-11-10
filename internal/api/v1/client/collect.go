@@ -269,6 +269,10 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 				api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 				return
 			}
+			accessToken, err = createAccessToken(context, sessionID, userKey.UserID, appKey, app, response)
+			if err != nil {
+				return
+			}
 		}
 
 		if slices.Contains(scopes, "openid") {
@@ -278,11 +282,6 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			if err != nil {
 				return
 			}
-		}
-
-		accessToken, err = createAccessToken(context, sessionID, userKey.UserID, appKey, app, response)
-		if err != nil {
-			return
 		}
 
 	case discovery.GrantTypeRefresh:
@@ -320,7 +319,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 			return
 		}
-	case discovery.GrantTypeCIBA, "":
+	case discovery.GrantTypeCIBA:
 		challenge := application.GetCurrentChallenge(context)
 		if !challenge.ValidateCollect(context) {
 			return
@@ -372,7 +371,8 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 				return
 			}
 		}
-
+	case "":
+		api.AbortError(context, http.StatusBadRequest, "invalid_request", "Missing grant_type", nil)
 	}
 	context.JSON(http.StatusOK, &TokenResponse{
 		AccessToken:  accessToken,
