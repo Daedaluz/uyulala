@@ -119,24 +119,45 @@ func (c *Data) Validate(ctx *gin.Context) bool {
 	return true
 }
 
-func (c *Data) ValidateCollect(ctx *gin.Context) bool {
+func (c *Data) ValidateBIDCollect(ctx *gin.Context) bool {
 	if c.Expired() {
-		api.StatusResponse(ctx, http.StatusBadRequest, "expired_token", "Challenge has expired")
+		api.StatusResponse(ctx, http.StatusBadRequest, "expired", "Challenge has expired")
 		return false
 	}
 	switch c.Status {
 	case StatusPending:
-		api.StatusResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to view the challenge")
+		api.StatusResponse(ctx, http.StatusBadRequest, "pending", "Waiting for user to view the challenge")
 	case StatusViewed:
-		api.StatusResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to sign the challenge")
+		api.StatusResponse(ctx, http.StatusBadRequest, "viewed", "Waiting for user to sign the challenge")
 	case StatusRejected:
-		api.StatusResponse(ctx, http.StatusBadRequest, "access_denied", "Challenge has been rejected")
+		api.StatusResponse(ctx, http.StatusBadRequest, "rejected", "Challenge has been rejected")
 	case StatusCollected:
 		api.StatusResponse(ctx, http.StatusBadRequest, "collected", "Challenge has already been collected")
 	case StatusSigned:
 		return true
 	default:
 		api.StatusResponse(ctx, http.StatusInternalServerError, "invalid_status", "Invalid challenge status")
+	}
+	return false
+}
+func (c *Data) ValidateOAuthCollect(ctx *gin.Context) bool {
+	if c.Expired() {
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "expired_token", "Challenge has expired")
+		return false
+	}
+	switch c.Status {
+	case StatusPending:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to view the challenge")
+	case StatusViewed:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to sign the challenge")
+	case StatusRejected:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "access_denied", "Challenge has been rejected")
+	case StatusCollected:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "collected", "Challenge has already been collected")
+	case StatusSigned:
+		return true
+	default:
+		api.OAuth2ErrorResponse(ctx, http.StatusInternalServerError, "invalid_status", "Invalid challenge status")
 	}
 	return false
 }

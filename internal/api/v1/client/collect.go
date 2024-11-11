@@ -113,7 +113,7 @@ func collectBIDFlow(context *gin.Context, app *appdb.Application) {
 		return
 	}
 
-	if !challenge.ValidateCollect(context) {
+	if !challenge.ValidateBIDCollect(context) {
 		return
 	}
 	if err := challengedb.SetChallengeStatus(context, challengeID, challengedb.StatusCollected); err != nil {
@@ -234,7 +234,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 	switch context.PostForm("grant_type") {
 	case discovery.GrantTypeAuthorizationCode:
 		challenge := application.GetCurrentChallenge(context)
-		if !challenge.ValidateCollect(context) {
+		if !challenge.ValidateOAuthCollect(context) {
 			return
 		}
 		if err := challengedb.SetChallengeStatus(context, challenge.ID, challengedb.StatusCollected); err != nil {
@@ -321,7 +321,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 		}
 	case discovery.GrantTypeCIBA:
 		challenge := application.GetCurrentChallenge(context)
-		if !challenge.ValidateCollect(context) {
+		if !challenge.ValidateOAuthCollect(context) {
 			return
 		}
 		if err := challengedb.SetChallengeStatus(context, challenge.ID, challengedb.StatusCollected); err != nil {
