@@ -419,8 +419,8 @@ CREATE OR REPLACE TABLE sessions
     counter          INT UNSIGNED  NOT NULL DEFAULT 0,
     created_at       DATETIME      NOT NULL DEFAULT current_timestamp(),
     expire_at        DATETIME,
-    CONSTRAINT FOREIGN KEY sessions_user_id (user_id) REFERENCES users (id),
-    CONSTRAINT FOREIGN KEY sessions_app_id (app_id) REFERENCES applications (id)
+    CONSTRAINT FOREIGN KEY sessions_user_id (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT FOREIGN KEY sessions_app_id (app_id) REFERENCES applications (id) ON DELETE CASCADE
 );
 
 CREATE OR REPLACE PROCEDURE create_session(IN session_id VARCHAR(16), IN user_id VARCHAR(36), IN app_id VARCHAR(36),
