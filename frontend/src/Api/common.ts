@@ -2,6 +2,7 @@ import {Base64} from "basejs";
 
 export type ChallengeResponse = {
     challenge_id: string;
+    secret: string;
 }
 
 export type RedirectResponse = {

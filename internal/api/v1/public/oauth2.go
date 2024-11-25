@@ -3,9 +3,6 @@ package public
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -19,6 +16,10 @@ import (
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
 	"uyulala/openid/discovery"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 func parseRedirectURI(vars url.Values) (*url.URL, error) {
@@ -156,7 +157,7 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 		return
 	}
 
-	challenge, err := challengedb.CreateChallenge(ctx, "webauthn.get", client.ID, time.Now().Add(time.Minute*5),
+	challenge, secret, err := challengedb.CreateChallenge(ctx, "webauthn.get", client.ID, time.Now().Add(time.Minute*5),
 		login, session,
 		bindingMessage, signatureData, redirectURI.String())
 	if err != nil {
@@ -169,5 +170,5 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 		return
 	}
 
-	api.ChallengeResponse(ctx, challenge)
+	api.ChallengeResponse(ctx, challenge, secret)
 }

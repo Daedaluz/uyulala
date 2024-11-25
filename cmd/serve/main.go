@@ -13,6 +13,7 @@ import (
 	"time"
 	"uyulala/internal/api/v1"
 	"uyulala/internal/db/migrations"
+	"uyulala/internal/mds"
 	"uyulala/internal/trust"
 	wellknown "uyulala/internal/well-known"
 
@@ -139,7 +140,6 @@ func Main(cmd *cobra.Command, args []string) {
 	gin.SetMode(gin.ReleaseMode)
 
 	db := prepareDatabase()
-	//populateMDS()
 
 	engine := setupGinEngine(db)
 
@@ -150,6 +150,8 @@ func Main(cmd *cobra.Command, args []string) {
 			slog.Info("Trust configured")
 		}
 	}
+
+	go mds.Init()
 
 	server := &http.Server{
 		Addr:              viper.GetString("http.addr"),

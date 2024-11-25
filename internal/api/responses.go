@@ -6,9 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ChallengeResponse(ctx *gin.Context, challengeID string) {
+func ChallengeResponse(ctx *gin.Context, challengeID, secret string) {
 	ctx.JSON(200, gin.H{
 		"challenge_id": challengeID,
+		"secret":       secret,
 	})
 }
 

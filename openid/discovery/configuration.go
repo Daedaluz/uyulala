@@ -87,7 +87,7 @@ type Required struct {
 	ScopesSupported []string `json:"scopes_supported,omitempty"`
 
 	// JSON array containing a list of the OAuth 2.0 response_type values that this OP supports.
-	// Dynamic OpenID Providers MUST support the code, id_token, and the token id_token Response Type values.
+	// Dynamic OpenID Providers MUST support the code, id_token, and the token id_token AssertionResponse Type values.
 	ResponseTypesSupported []string `json:"response_types_supported,omitempty"`
 
 	// JSON array containing a list of the Subject Identifier types that this OP supports.
@@ -95,7 +95,7 @@ type Required struct {
 	SubjectTypesSupported []string `json:"subject_types_supported,omitempty"`
 
 	// JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for the ID Token to encode the Claims in a JWT.
-	// The algorithm RS256 MUST be included. The value none MAY be supported, but MUST NOT be used unless the Response
+	// The algorithm RS256 MUST be included. The value none MAY be supported, but MUST NOT be used unless the AssertionResponse
 	// Type used returns no ID Token from the Authorization Endpoint (such as when using the Authorization Code Flow).
 	IDTokenSigningAlgValuesSupported []string `json:"id_token_signing_alg_values_supported,omitempty"`
 
@@ -122,7 +122,7 @@ type Optional struct {
 	RegistrationEndpoint string `json:"registration_endpoint,omitempty"`
 
 	// JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
-	// OAuth 2.0 Multiple Response Type Encoding Practices.
+	// OAuth 2.0 Multiple AssertionResponse Type Encoding Practices.
 	// If omitted, the default for Dynamic OpenID Providers is ["query", "fragment"].
 	ResponseModesSupported []string `json:"response_modes_supported,omitempty"`
 
@@ -249,7 +249,7 @@ type Full struct {
 	ScopesSupported []string `json:"scopes_supported"`
 
 	// JSON array containing a list of the OAuth 2.0 response_type values that this OP supports.
-	// Dynamic OpenID Providers MUST support the code, id_token, and the token id_token Response Type values.
+	// Dynamic OpenID Providers MUST support the code, id_token, and the token id_token AssertionResponse Type values.
 	ResponseTypesSupported []string `json:"response_types_supported"`
 
 	// JSON array containing a list of the Subject Identifier types that this OP supports.
@@ -257,7 +257,7 @@ type Full struct {
 	SubjectTypesSupported []string `json:"subject_types_supported"`
 
 	// JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for the ID Token to encode the Claims in a JWT.
-	// The algorithm RS256 MUST be included. The value none MAY be supported, but MUST NOT be used unless the Response
+	// The algorithm RS256 MUST be included. The value none MAY be supported, but MUST NOT be used unless the AssertionResponse
 	// Type used returns no ID Token from the Authorization Endpoint (such as when using the Authorization Code Flow).
 	IDTokenSigningAlgValuesSupported []string `json:"id_token_signing_alg_values_supported"`
 
@@ -268,7 +268,7 @@ type Full struct {
 	RegistrationEndpoint string `json:"registration_endpoint,omitempty"`
 
 	// JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in
-	// OAuth 2.0 Multiple Response Type Encoding Practices.
+	// OAuth 2.0 Multiple AssertionResponse Type Encoding Practices.
 	// If omitted, the default for Dynamic OpenID Providers is ["query", "fragment"].
 	ResponseModesSupported []string `json:"response_modes_supported,omitempty"`
 

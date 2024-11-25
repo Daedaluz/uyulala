@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -43,7 +44,7 @@ func (s *SignUser) WebAuthnIcon() string {
 	return ""
 }
 
-func signLogin(context *gin.Context, challengeID string, challenge *challengedb.Data) {
+func signLogin(context *gin.Context, challenge *challengedb.Data) {
 	cfg := authn.CreateWebauthnConfig()
 	session := webauthn.SessionData{}
 	if err := challenge.Expand(nil, &session); err != nil {
@@ -93,7 +94,7 @@ func signLogin(context *gin.Context, challengeID string, challenge *challengedb.
 		return
 	}
 
-	if err := challengedb.SignChallenge(context, challengeID, parsed, cred); err != nil {
+	if err := challengedb.SignChallenge(context, challenge.ID, parsed, cred); err != nil {
 		slog.Error("signLogin SignChallenge", "error", err)
 		api.AbortError(context, http.StatusInternalServerError, "invalid_challenge", "Unexpected error", err)
 		return
@@ -114,7 +115,7 @@ func signLogin(context *gin.Context, challengeID string, challenge *challengedb.
 			q := r.Query()
 			if oauthContext, err := url.ParseQuery(challenge.OAuth2Context); err == nil && len(oauthContext) > 0 {
 				// TODO: check CIBA ping / push modes
-				code, err := challengedb.CreateCode(context, challengeID)
+				code, err := challengedb.CreateCode(context, challenge.ID)
 				if err != nil {
 					slog.Error("signLogin CreateCode", "error", err)
 					api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
@@ -125,7 +126,7 @@ func signLogin(context *gin.Context, challengeID string, challenge *challengedb.
 					q.Set("state", oauthContext.Get("state"))
 				}
 			} else {
-				q.Set("challengeId", challengeID)
+				q.Set("challengeId", challenge.ID)
 			}
 			r.RawQuery = q.Encode()
 			redirectURL = r.String()
@@ -133,7 +134,7 @@ func signLogin(context *gin.Context, challengeID string, challenge *challengedb.
 	}
 	api.RedirectResponse(context, redirectURL)
 }
-func signCreate(context *gin.Context, challengeID string, challenge *challengedb.Data) {
+func signCreate(context *gin.Context, challenge *challengedb.Data) {
 	cfg := authn.CreateWebauthnConfig()
 	session := webauthn.SessionData{}
 	if err := challenge.Expand(nil, &session); err != nil {
@@ -176,14 +177,14 @@ func signCreate(context *gin.Context, challengeID string, challenge *challengedb
 		api.AbortError(context, http.StatusInternalServerError, "invalid_challenge", "Unexpected error", err)
 		return
 	}
-	if err := challengedb.DeleteChallenge(context, challengeID); err != nil {
-		slog.Error("signCreate DeleteChallenge", "error", err)
+	if err := challengedb.SignCreationChallenge(context, challenge.ID, parsed, cred); err != nil {
+		slog.Error("signCreate SignCreationChallenge", "error", err)
 		api.AbortError(context, http.StatusInternalServerError, "invalid_challenge", "Unexpected error", err)
 		return
 	}
 	if challenge.RedirectURL != "" {
 		redirectArgs := url.Values{}
-		redirectArgs.Set("challengeId", challengeID)
+		redirectArgs.Set("challengeId", challenge.ID)
 		redirectArgs.Set("userId", string(session.UserID))
 		redirectArgs.Set("action", "created")
 		api.RedirectResponse(context, challenge.RedirectURL+"?"+redirectArgs.Encode())
@@ -210,8 +211,43 @@ func signChallengeHandler(context *gin.Context) {
 
 	switch challenge.Type {
 	case "webauthn.get":
-		signLogin(context, challengeID, challenge)
+		signLogin(context, challenge)
 	case "webauthn.create":
-		signCreate(context, challengeID, challenge)
+		signCreate(context, challenge)
 	}
+}
+
+func signChallengeHandlerPost(ctx *gin.Context) {
+	tokenString, ok := ctx.GetPostForm("token")
+	if !ok {
+		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Missing 'token' post parameter", nil)
+		return
+	}
+	claims := &getChallengeClaims{}
+	var data *challengedb.Data
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
+		var err error
+		challengeID := claims.QRData
+		data, err = challengedb.GetChallenge(ctx, challengeID)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(data.Secret), nil
+	}, jwt.WithoutClaimsValidation())
+	if err != nil {
+		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid token", err)
+		return
+	}
+
+	if !data.Validate(ctx) {
+		return
+	}
+
+	switch data.Type {
+	case "webauthn.get":
+		signLogin(ctx, data)
+	case "webauthn.create":
+		signCreate(ctx, data)
+	}
+
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 	"gitlab.com/daedaluz/gindb"
 )
 
@@ -206,6 +205,24 @@ func SignChallenge(ctx *gin.Context, challengeID string, signature *protocol.Par
 	return err
 }
 
+func SignCreationChallenge(ctx *gin.Context, challengeID string, signature *protocol.ParsedCredentialCreationData, credential *webauthn.Credential) error {
+	tx := gindb.GetTX(ctx)
+
+	sig, err := db.GobEncodeData(signature)
+	if err != nil {
+		return err
+	}
+	cred, err := db.GobEncodeData(credential)
+	if err != nil {
+		return err
+	}
+	if err := SetChallengeStatus(ctx, challengeID, StatusSigned); err != nil {
+		return err
+	}
+	_, err = tx.Exec(`call sign_challenge(?, ?, ?)`, challengeID, sig, cred)
+	return err
+}
+
 func DeleteChallenge(ctx *gin.Context, challengeID string) error {
 	tx := gindb.GetTX(ctx)
 	_, err := tx.Exec(`call delete_challenge(?)`, challengeID)
@@ -260,14 +277,14 @@ func DeleteCode(ctx *gin.Context, code string) error {
 	return nil
 }
 
-func CreateCIBARequestID(ctx *gin.Context, challengeID string) (string, string, error) {
+func CreateCIBARequestID(ctx *gin.Context, challengeID string) (string, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	tx := gindb.GetTX(ctx)
-	_, err = tx.Exec(`call create_ciba_request_id(?, ?, ?)`, id.String(), challengeID)
-	return id.String(), secret.String(), err
+	_, err = tx.Exec(`call create_ciba_request_id(?, ?)`, id.String(), challengeID)
+	return id.String(), err
 }
 
 func GetChallengeByCIBARequestID(ctx *gin.Context, requestID string) (ch *Data, err error) {

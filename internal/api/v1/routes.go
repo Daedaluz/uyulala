@@ -1,9 +1,6 @@
 package v1
 
 import (
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"net/http"
 	"uyulala/internal/api/application"
 	"uyulala/internal/api/v1/client"
@@ -11,6 +8,10 @@ import (
 	"uyulala/internal/api/v1/public"
 	"uyulala/internal/api/v1/service"
 	"uyulala/internal/api/v1/user"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func AddRoutes(g *gin.RouterGroup) {

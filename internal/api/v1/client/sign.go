@@ -142,13 +142,13 @@ func createBIDChallenge(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	challenge, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
+	challenge, secret, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
 		time.Now().Add(time.Duration(req.Timeout)*time.Second), login, sessionData, req.Text, req.Data, req.Redirect)
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	api.ChallengeResponse(ctx, challenge)
+	api.ChallengeResponse(ctx, challenge, secret)
 }
 
 func getUserHint(ctx *gin.Context) (string, error) {
@@ -271,7 +271,7 @@ func createCIBAChallenge(ctx *gin.Context) {
 		return
 	}
 
-	challenge, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
+	challenge, secret, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
 		time.Now().Add(time.Duration(timeout)*time.Second), login, sessionData, bindingMessage, nil, "")
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
@@ -305,8 +305,8 @@ func createCIBAChallenge(ctx *gin.Context) {
 	resp := &CIBAAuthenticationResponse{
 		RequestID: cibaRequestID,
 		ExpiresIn: timeout,
-		QRSecret:  "url",
-		QRData:    url.String(),
+		QRSecret:  secret,
+		QRData:    challenge,
 	}
 	if app.CIBAMode == "poll" || app.CIBAMode == "ping" {
 		resp.Interval = 1
