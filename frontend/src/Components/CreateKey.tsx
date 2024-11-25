@@ -27,6 +27,16 @@ export const CreateKey = ({id, challenge}: CreateKeyProps) => {
         });
     }
 
+    const reject = () => {
+        api.reject(id).then((response) => {
+            if (response.redirect === '') {
+                window.close();
+            } else {
+                window.location.href = response.redirect;
+            }
+        });
+    }
+
     return (
         <>
             <div className={'signLayout'}>
@@ -34,7 +44,7 @@ export const CreateKey = ({id, challenge}: CreateKeyProps) => {
                     <h1 style={{textAlign: 'center'}}>Register</h1>
                     <h2 style={{textAlign: 'center'}}>{challenge.publicKey?.user.displayName}</h2>
                     <Button onClick={() => create()} variant={'contained'} color={'primary'}>Register</Button>
-                    <Button onClick={() => window.close()} variant={'contained'} color={'error'}>Cancel</Button>
+                    <Button onClick={() => reject()} variant={'contained'} color={'error'}>Cancel</Button>
                 </Paper>
             </div>
         </>
