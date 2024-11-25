@@ -3,14 +3,6 @@ package client
 import (
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/spf13/viper"
 	"net/http"
 	"net/url"
 	"slices"
@@ -25,6 +17,15 @@ import (
 	"uyulala/internal/db/sessiondb"
 	"uyulala/internal/db/userdb"
 	"uyulala/openid/discovery"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/viper"
 )
 
 type SignatureData struct {
@@ -112,7 +113,7 @@ func collectBIDFlow(context *gin.Context, app *appdb.Application) {
 		return
 	}
 
-	if !challenge.ValidateCollect(context) {
+	if !challenge.ValidateBIDCollect(context) {
 		return
 	}
 	if err := challengedb.SetChallengeStatus(context, challengeID, challengedb.StatusCollected); err != nil {
@@ -206,6 +207,7 @@ func createAccessToken(ctx *gin.Context, sessionID, userID string, key jwk.Key, 
 
 type TokenResponse struct {
 	AccessToken  string `json:"access_token,omitempty"`
+	Scope        string `json:"scope,omitempty"`
 	IDToken      string `json:"id_token,omitempty"`
 	TokenType    string `json:"token_type,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty" `
@@ -217,6 +219,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 		accessToken  string
 		refreshToken string
 		sessionID    string
+		resultScopes []string
 	)
 	key, err := keydb.GetKey(context, app.KeyID)
 	if err != nil {
@@ -231,7 +234,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 	switch context.PostForm("grant_type") {
 	case discovery.GrantTypeAuthorizationCode:
 		challenge := application.GetCurrentChallenge(context)
-		if !challenge.ValidateCollect(context) {
+		if !challenge.ValidateOAuthCollect(context) {
 			return
 		}
 		if err := challengedb.SetChallengeStatus(context, challenge.ID, challengedb.StatusCollected); err != nil {
@@ -259,25 +262,26 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 				api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 				return
 			}
+			resultScopes = append(resultScopes, "offline_access")
 			sessionID = sess.ID
 			refreshToken, err = sess.CreateRefreshToken(appKey)
 			if err != nil {
 				api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 				return
 			}
-		}
-
-		if slices.Contains(scopes, "openid") {
-			// TODO: add ACR data
-			idToken, err = createIDToken(context, sessionID, userKey.UserID, oauth2Ctx.Get("nonce"), app, appKey, response)
+			accessToken, err = createAccessToken(context, sessionID, userKey.UserID, appKey, app, response)
 			if err != nil {
 				return
 			}
 		}
 
-		accessToken, err = createAccessToken(context, sessionID, userKey.UserID, appKey, app, response)
-		if err != nil {
-			return
+		if slices.Contains(scopes, "openid") {
+			// TODO: add ACR data
+			resultScopes = append(resultScopes, "openid")
+			idToken, err = createIDToken(context, sessionID, userKey.UserID, oauth2Ctx.Get("nonce"), app, appKey, response)
+			if err != nil {
+				return
+			}
 		}
 
 	case discovery.GrantTypeRefresh:
@@ -303,22 +307,76 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 		}
 		if slices.Contains(scopes, "openid") {
 			idToken, err = createIDToken(context, session.ID, session.UserID, "", app, appKey, nil)
+			resultScopes = append(resultScopes, "openid")
 			if err != nil {
 				api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 				return
 			}
 		}
+		resultScopes = append(resultScopes, "offline_access")
 		accessToken, err = createAccessToken(context, session.ID, session.UserID, appKey, app, nil)
 		if err != nil {
 			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 			return
 		}
 	case discovery.GrantTypeCIBA:
-		// TODO: Implement collect for CIBA flow
-	}
+		challenge := application.GetCurrentChallenge(context)
+		if !challenge.ValidateOAuthCollect(context) {
+			return
+		}
+		if err := challengedb.SetChallengeStatus(context, challenge.ID, challengedb.StatusCollected); err != nil {
+			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
+			return
+		}
+		response := collectResponseFromChallenge(challenge)
+		oauth2Ctx, _ := url.ParseQuery(challenge.OAuth2Context)
+		scopes := strings.FieldsFunc(oauth2Ctx.Get("scope"), func(c rune) bool {
+			switch c {
+			case ' ', '\t', '\r', '\n':
+				return true
+			}
+			return false
+		})
+		// TODO: Check ciba flow
+		userKey, err := userdb.GetKey(context, response.Signature.RawID)
+		if err != nil {
+			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
+			return
+		}
 
+		if slices.Contains(scopes, "offline_access") {
+			sess, err := sessiondb.Create(context, userKey.UserID, app.ID, oauth2Ctx.Get("scope"))
+			if err != nil {
+				api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
+				return
+			}
+			resultScopes = append(resultScopes, "offline_access")
+			sessionID = sess.ID
+			refreshToken, err = sess.CreateRefreshToken(appKey)
+			if err != nil {
+				api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
+				return
+			}
+			accessToken, err = createAccessToken(context, sessionID, userKey.UserID, appKey, app, response)
+			if err != nil {
+				return
+			}
+		}
+
+		if slices.Contains(scopes, "openid") {
+			// TODO: add ACR data
+			resultScopes = append(resultScopes, "openid")
+			idToken, err = createIDToken(context, sessionID, userKey.UserID, oauth2Ctx.Get("nonce"), app, appKey, response)
+			if err != nil {
+				return
+			}
+		}
+	case "":
+		api.AbortError(context, http.StatusBadRequest, "invalid_request", "Missing grant_type", nil)
+	}
 	context.JSON(http.StatusOK, &TokenResponse{
 		AccessToken:  accessToken,
+		Scope:        strings.Join(resultScopes, " "),
 		IDToken:      idToken,
 		RefreshToken: refreshToken,
 		TokenType:    "Bearer",

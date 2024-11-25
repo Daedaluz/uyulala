@@ -6,7 +6,7 @@ import (
 
 type Error struct {
 	Code             int    `json:"code"`
-	Message          string `json:"msg"`
+	Message          string `json:"error_description"`
 	Err              string `json:"error"`
 	TechnicalMessage string `json:"technicalMsg"`
 }

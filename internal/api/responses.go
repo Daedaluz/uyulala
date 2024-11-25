@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func ChallengeResponse(ctx *gin.Context, challengeID string) {
@@ -15,6 +16,13 @@ func StatusResponse(ctx *gin.Context, code int, status, msg string) {
 	ctx.AbortWithStatusJSON(code, gin.H{
 		"status": status,
 		"msg":    msg,
+	})
+}
+
+func OAuth2ErrorResponse(ctx *gin.Context, code int, err string, desc string) {
+	ctx.AbortWithStatusJSON(code, gin.H{
+		"error":             err,
+		"error_description": desc,
 	})
 }
 

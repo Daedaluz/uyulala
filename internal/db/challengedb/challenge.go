@@ -2,16 +2,17 @@ package challengedb
 
 import (
 	"database/sql"
+	"net/http"
+	"net/url"
+	"time"
+	"uyulala/internal/api"
+	"uyulala/internal/db"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 	"gitlab.com/daedaluz/gindb"
-	"net/http"
-	"net/url"
-	"time"
-	api2 "uyulala/internal/api"
-	"uyulala/internal/db"
 )
 
 const (
@@ -102,40 +103,61 @@ func (c *Data) Expired() bool {
 
 func (c *Data) Validate(ctx *gin.Context) bool {
 	if c.Signed.Valid {
-		api2.AbortError(ctx, http.StatusBadRequest, "signed", "Challenge has already been signed", nil)
+		api.AbortError(ctx, http.StatusBadRequest, "signed", "Challenge has already been signed", nil)
 		return false
 	}
 
 	if c.Status == StatusRejected {
-		api2.AbortError(ctx, http.StatusBadRequest, "rejected", "Challenge has already been rejected", nil)
+		api.AbortError(ctx, http.StatusBadRequest, "access_denied", "Challenge has already been rejected", nil)
 		return false
 	}
 
 	if c.Expired() {
-		api2.AbortError(ctx, http.StatusBadRequest, "expired", "Challenge has expired", nil)
+		api.AbortError(ctx, http.StatusBadRequest, "expired_token", "Challenge has expired", nil)
 		return false
 	}
 	return true
 }
 
-func (c *Data) ValidateCollect(ctx *gin.Context) bool {
+func (c *Data) ValidateBIDCollect(ctx *gin.Context) bool {
 	if c.Expired() {
-		api2.StatusResponse(ctx, http.StatusBadRequest, "expired", "Challenge has expired")
+		api.StatusResponse(ctx, http.StatusBadRequest, "expired", "Challenge has expired")
 		return false
 	}
 	switch c.Status {
 	case StatusPending:
-		api2.StatusResponse(ctx, http.StatusOK, "pending", "Challenge has not been signed yet")
+		api.StatusResponse(ctx, http.StatusBadRequest, "pending", "Waiting for user to view the challenge")
 	case StatusViewed:
-		api2.StatusResponse(ctx, http.StatusOK, "viewed", "Challenge has not been signed yet")
+		api.StatusResponse(ctx, http.StatusBadRequest, "viewed", "Waiting for user to sign the challenge")
 	case StatusRejected:
-		api2.StatusResponse(ctx, http.StatusOK, "rejected", "Challenge has been rejected")
+		api.StatusResponse(ctx, http.StatusBadRequest, "rejected", "Challenge has been rejected")
 	case StatusCollected:
-		api2.StatusResponse(ctx, http.StatusBadRequest, "collected", "Challenge has already been collected")
+		api.StatusResponse(ctx, http.StatusBadRequest, "collected", "Challenge has already been collected")
 	case StatusSigned:
 		return true
 	default:
-		api2.StatusResponse(ctx, http.StatusBadRequest, "invalid_status", "Invalid challenge status")
+		api.StatusResponse(ctx, http.StatusInternalServerError, "invalid_status", "Invalid challenge status")
+	}
+	return false
+}
+func (c *Data) ValidateOAuthCollect(ctx *gin.Context) bool {
+	if c.Expired() {
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "expired_token", "Challenge has expired")
+		return false
+	}
+	switch c.Status {
+	case StatusPending:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to view the challenge")
+	case StatusViewed:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to sign the challenge")
+	case StatusRejected:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "access_denied", "Challenge has been rejected")
+	case StatusCollected:
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "collected", "Challenge has already been collected")
+	case StatusSigned:
+		return true
+	default:
+		api.OAuth2ErrorResponse(ctx, http.StatusInternalServerError, "invalid_status", "Invalid challenge status")
 	}
 	return false
 }
@@ -216,6 +238,42 @@ func CreateCode(ctx *gin.Context, challengeID string) (string, error) {
 func DeleteCode(ctx *gin.Context, code string) error {
 	tx := gindb.GetTX(ctx)
 	x, err := tx.Exec(`call delete_code(?)`, code)
+	if err != nil {
+		return err
+	}
+	n, err := x.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func CreateCIBARequestID(ctx *gin.Context, challengeID string) (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	tx := gindb.GetTX(ctx)
+	_, err = tx.Exec(`call create_ciba_request_id(?, ?)`, id.String(), challengeID)
+	return id.String(), err
+}
+
+func GetChallengeByCIBARequestID(ctx *gin.Context, requestID string) (ch *Data, err error) {
+	ch = &Data{}
+	tx := gindb.GetTX(ctx)
+	res := tx.QueryRowx(`call get_challenge_by_ciba_request_id(?)`, requestID)
+	if err := res.StructScan(ch); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func DeleteCIBARequest(ctx *gin.Context, requestID string) error {
+	tx := gindb.GetTX(ctx)
+	x, err := tx.Exec(`call delete_ciba_request(?)`, requestID)
 	if err != nil {
 		return err
 	}

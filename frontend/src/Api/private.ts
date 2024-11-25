@@ -31,11 +31,17 @@ export type BIDResponse = {
     status: string;
 }
 
+export type MetadataStatementIcon = {
+    Scheme: string
+    Opaque: string
+}
+
 export type MetadataStatement = {
     description: string
     protocolFamily: string
     authenticatorVersion: number
-    icon: string
+    icon?: string
+    Icon: MetadataStatementIcon
 }
 
 export type StatusReport = {

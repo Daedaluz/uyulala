@@ -16,7 +16,11 @@ webauthn:
   debug: true
   mds3: https://mds.fidoalliance.org
 
+
 issuer: "http://localhost:8080"
+
+ciba:
+  qrTemplate: "http://localhost:8080/authenticator?id={.challengeId}"
 
 userApi:
   trustedIssuer: ""

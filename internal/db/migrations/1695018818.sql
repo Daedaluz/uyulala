@@ -277,6 +277,45 @@ CREATE OR REPLACE TABLE challenge_codes
     CONSTRAINT FOREIGN KEY challenge_codes_challenge_id (challenge_id) REFERENCES challenges (id) ON DELETE CASCADE
 );
 
+CREATE OR REPLACE TABLE challenge_ciba_request_ids
+(
+    request_id VARCHAR(36) PRIMARY KEY,
+    challenge_id VARCHAR(36),
+    CONSTRAINT FOREIGN KEY challenge_ciba_request_ids_challenge_id (challenge_id) REFERENCES challenges (id) ON DELETE CASCADE
+);
+
+CREATE OR REPLACE PROCEDURE create_ciba_request_id(IN request_id VARCHAR(36), IN challenge_id VARCHAR(36))
+BEGIN
+    INSERT challenge_ciba_request_ids VALUE (request_id, challenge_id);
+END;
+
+CREATE OR REPLACE PROCEDURE get_challenge_by_ciba_request_id(IN request_id VARCHAR(36))
+BEGIN
+    SELECT created,
+           id,
+           type,
+           app_id,
+           expire,
+           public_data,
+           private_data,
+           signature_text,
+           signature_data,
+           signature,
+           credential,
+           signed,
+           redirect_url,
+           oauth2_context,
+           status
+    FROM challenge_ciba_request_ids c
+             RIGHT JOIN challenges c2 on c.challenge_id = c2.id
+    WHERE c.request_id = request_id;
+END;
+
+CREATE OR REPLACE PROCEDURE delete_ciba_request(IN request_id VARCHAR(36))
+BEGIN
+    DELETE FROM challenge_ciba_request_ids WHERE request_id = request_id;
+END;
+
 CREATE OR REPLACE PROCEDURE create_code(IN code VARCHAR(36), IN challenge_id VARCHAR(36))
 BEGIN
     INSERT challenge_codes VALUE (code, challenge_id);
@@ -380,8 +419,8 @@ CREATE OR REPLACE TABLE sessions
     counter          INT UNSIGNED  NOT NULL DEFAULT 0,
     created_at       DATETIME      NOT NULL DEFAULT current_timestamp(),
     expire_at        DATETIME,
-    CONSTRAINT FOREIGN KEY sessions_user_id (user_id) REFERENCES users (id),
-    CONSTRAINT FOREIGN KEY sessions_app_id (app_id) REFERENCES applications (id)
+    CONSTRAINT FOREIGN KEY sessions_user_id (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT FOREIGN KEY sessions_app_id (app_id) REFERENCES applications (id) ON DELETE CASCADE
 );
 
 CREATE OR REPLACE PROCEDURE create_session(IN session_id VARCHAR(16), IN user_id VARCHAR(36), IN app_id VARCHAR(36),

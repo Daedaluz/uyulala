@@ -25,6 +25,7 @@ func getMeta() (map[uuid.UUID]*metadata.Entry, error) {
 			return nil, err
 		}
 		m = tmp.ToMap()
+		meta = m
 	}
 	return m, nil
 }

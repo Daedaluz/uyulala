@@ -3,10 +3,6 @@ package public
 import (
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -14,6 +10,11 @@ import (
 	"uyulala/internal/authn"
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/google/uuid"
 )
 
 type SignUser struct {
@@ -164,14 +165,12 @@ func signCreate(context *gin.Context, challengeID string, challenge *challengedb
 		api.AbortError(context, http.StatusBadRequest, "invalid_response", "Invalid response", err)
 		return
 	}
-
 	aaguid, err := uuid.FromBytes(cred.Authenticator.AAGUID)
 	if err != nil {
 		slog.Error("signCreate uuid.FromBytes", "error", err)
 		api.AbortError(context, http.StatusBadRequest, "invalid_response", "Invalid response", err)
 		return
 	}
-
 	if err := userdb.CreateUserKey(context, string(session.UserID), aaguid, cred); err != nil {
 		slog.Error("signCreate CreateUserKey", "error", err)
 		api.AbortError(context, http.StatusInternalServerError, "invalid_challenge", "Unexpected error", err)
@@ -180,6 +179,14 @@ func signCreate(context *gin.Context, challengeID string, challenge *challengedb
 	if err := challengedb.DeleteChallenge(context, challengeID); err != nil {
 		slog.Error("signCreate DeleteChallenge", "error", err)
 		api.AbortError(context, http.StatusInternalServerError, "invalid_challenge", "Unexpected error", err)
+		return
+	}
+	if challenge.RedirectURL != "" {
+		redirectArgs := url.Values{}
+		redirectArgs.Set("challengeId", challengeID)
+		redirectArgs.Set("userId", string(session.UserID))
+		redirectArgs.Set("action", "created")
+		api.RedirectResponse(context, challenge.RedirectURL+"?"+redirectArgs.Encode())
 		return
 	}
 	api.RedirectResponse(context, challenge.RedirectURL)
