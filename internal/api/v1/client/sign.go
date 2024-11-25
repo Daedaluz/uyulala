@@ -41,8 +41,8 @@ type CIBAAuthenticationResponse struct {
 	RequestID string `json:"auth_req_id"`
 	ExpiresIn uint64 `json:"expires_in"`
 	Interval  uint64 `json:"interval,omitempty"`
-	QRData    string `json:"qr_data,omitempty"` // CIBA Extension
-	QRType    string `json:"qr_type,omitempty"` // CIBA Extension
+	QRData    string `json:"qr_data,omitempty"`   // CIBA Extension
+	QRSecret  string `json:"qr_secret,omitempty"` // CIBA Extension
 }
 
 func (c CreateCIBAChallengeRequest) WebAuthnID() []byte {
@@ -305,7 +305,7 @@ func createCIBAChallenge(ctx *gin.Context) {
 	resp := &CIBAAuthenticationResponse{
 		RequestID: cibaRequestID,
 		ExpiresIn: timeout,
-		QRType:    "url",
+		QRSecret:  "url",
 		QRData:    url.String(),
 	}
 	if app.CIBAMode == "poll" || app.CIBAMode == "ping" {

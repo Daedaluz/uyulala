@@ -12,6 +12,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 	"gitlab.com/daedaluz/gindb"
 )
 
@@ -24,32 +25,39 @@ const (
 )
 
 func CreateChallenge(ctx *gin.Context, typ, appID string, expire time.Time,
-	publicData, privateData any, signatureText string, signatureData []byte, redirectURL string) (string, error) {
+	publicData, privateData any, signatureText string, signatureData []byte, redirectURL string) (string, string, error) {
 	var pubData, privData []byte
 	var err error
+	var secret uuid.UUID
+	secret, err = uuid.NewRandom()
+
+	if err != nil {
+		return "", "", err
+	}
 	if pubData, err = db.GobEncodeData(publicData); err != nil {
-		return "", err
+		return "", "", err
 	}
 	if privData, err = db.GobEncodeData(privateData); err != nil {
-		return "", err
+		return "", "", err
 	}
+
 	tx := gindb.GetTX(ctx)
-	res, err := tx.Queryx(`call create_challenge(?, ?, ?, ?, ?, ?, ?, ?, ?)`, db.GenerateID(8), typ, appID, expire,
+	res, err := tx.Queryx(`call create_challenge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, db.GenerateID(8), typ, appID, expire,
 		pubData, privData,
 		signatureText, signatureData,
-		redirectURL)
+		redirectURL, secret)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer res.Close()
 	var challengeID string
 	if !res.Next() {
-		return "", sql.ErrNoRows
+		return "", "", sql.ErrNoRows
 	}
 	if err := res.Scan(&challengeID); err != nil {
-		return "", err
+		return "", "", err
 	}
-	return challengeID, nil
+	return challengeID, secret.String(), nil
 }
 
 type Data struct {
@@ -71,6 +79,7 @@ type Data struct {
 	Status        string `db:"status"`
 	RedirectURL   string `db:"redirect_url"`
 	OAuth2Context string `db:"oauth2_context"`
+	Secret        string `db:"secret"`
 }
 
 func (c *Data) GetOAuth2Context() url.Values {
@@ -251,14 +260,14 @@ func DeleteCode(ctx *gin.Context, code string) error {
 	return nil
 }
 
-func CreateCIBARequestID(ctx *gin.Context, challengeID string) (string, error) {
+func CreateCIBARequestID(ctx *gin.Context, challengeID string) (string, string, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	tx := gindb.GetTX(ctx)
-	_, err = tx.Exec(`call create_ciba_request_id(?, ?)`, id.String(), challengeID)
-	return id.String(), err
+	_, err = tx.Exec(`call create_ciba_request_id(?, ?, ?)`, id.String(), challengeID)
+	return id.String(), secret.String(), err
 }
 
 func GetChallengeByCIBARequestID(ctx *gin.Context, requestID string) (ch *Data, err error) {

@@ -2,12 +2,13 @@ package wellknown
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"log/slog"
 	"net/http"
 	"uyulala/internal/db/keydb"
 	"uyulala/openid/discovery"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func OpenIDConfigurationHandler(c *gin.Context) {
@@ -20,15 +21,16 @@ func OpenIDConfigurationHandler(c *gin.Context) {
 		issuer = viper.GetString("issuer")
 	}
 	req := &discovery.Required{
-		Issuer:                                 issuer,
-		AuthorizationEndpoint:                  fmt.Sprintf("%s/authorize", issuer),
-		TokenEndpoint:                          fmt.Sprintf("%s/api/v1/collect", issuer),
-		JWKSURI:                                fmt.Sprintf("%s/api/v1/oidc/jwkset.json", issuer),
-		ResponseTypesSupported:                 []string{discovery.ResponseTypeCode},
-		GrantTypesSupported:                    []string{discovery.GrantTypeAuthorizationCode, discovery.GrantTypeCIBA},
-		ScopesSupported:                        []string{"openid", "offline_access"},
-		BackChannelAuthenticationEndpoint:      fmt.Sprintf("%s/api/v1/sign", issuer),
-		BackChannelTokenDeliveryModesSupported: []string{"poll", "ping", "push"},
+		Issuer:                                  issuer,
+		AuthorizationEndpoint:                   fmt.Sprintf("%s/authorize", issuer),
+		TokenEndpoint:                           fmt.Sprintf("%s/api/v1/collect", issuer),
+		JWKSURI:                                 fmt.Sprintf("%s/api/v1/oidc/jwkset.json", issuer),
+		ResponseTypesSupported:                  []string{discovery.ResponseTypeCode},
+		GrantTypesSupported:                     []string{discovery.GrantTypeAuthorizationCode, discovery.GrantTypeCIBA},
+		ScopesSupported:                         []string{"openid", "offline_access"},
+		BackChannelAuthenticationEndpoint:       fmt.Sprintf("%s/api/v1/sign", issuer),
+		BackChannelTokenDeliveryModesSupported:  []string{"poll", "ping", "push"},
+		BackChannelQRCodeAuthenticationEndpoint: fmt.Sprintf("%s/qr", issuer),
 	}
 	opt := &discovery.Optional{
 		ACRValuesSupported: []string{
