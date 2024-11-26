@@ -30,7 +30,7 @@ func OpenIDConfigurationHandler(c *gin.Context) {
 		ScopesSupported:                         []string{"openid", "offline_access"},
 		BackChannelAuthenticationEndpoint:       fmt.Sprintf("%s/api/v1/sign", issuer),
 		BackChannelTokenDeliveryModesSupported:  []string{"poll", "ping", "push"},
-		BackChannelQRCodeAuthenticationEndpoint: fmt.Sprintf("%s/qr", issuer),
+		BackChannelQRCodeAuthenticationEndpoint: fmt.Sprintf("%s/authenticator", issuer),
 	}
 	opt := &discovery.Optional{
 		ACRValuesSupported: []string{
