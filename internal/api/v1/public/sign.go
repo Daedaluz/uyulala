@@ -14,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -215,39 +214,4 @@ func signChallengeHandler(context *gin.Context) {
 	case "webauthn.create":
 		signCreate(context, challenge)
 	}
-}
-
-func signChallengeHandlerPost(ctx *gin.Context) {
-	tokenString, ok := ctx.GetPostForm("token")
-	if !ok {
-		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Missing 'token' post parameter", nil)
-		return
-	}
-	claims := &getChallengeClaims{}
-	var data *challengedb.Data
-	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
-		var err error
-		challengeID := claims.QRData
-		data, err = challengedb.GetChallenge(ctx, challengeID)
-		if err != nil {
-			return nil, err
-		}
-		return []byte(data.Secret), nil
-	}, jwt.WithoutClaimsValidation())
-	if err != nil {
-		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid token", err)
-		return
-	}
-
-	if !data.Validate(ctx) {
-		return
-	}
-
-	switch data.Type {
-	case "webauthn.get":
-		signLogin(ctx, data)
-	case "webauthn.create":
-		signCreate(ctx, data)
-	}
-
 }
