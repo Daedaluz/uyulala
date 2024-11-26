@@ -14,12 +14,19 @@ func init() {
 
 	gob.Register(&protocol.CredentialCreation{})
 	gob.Register(&protocol.CredentialCreationResponse{})
+	gob.Register(&protocol.PublicKeyCredentialRequestOptions{})
 
 	gob.Register(&protocol.CredentialAssertion{})
 	gob.Register(&protocol.CredentialAssertionResponse{})
+
+	gob.Register(&protocol.ParsedAttestationResponse{})
+	gob.Register(&protocol.ParsedAssertionResponse{})
+	gob.Register(&protocol.ParsedPublicKeyCredential{})
 
 	gob.Register(&webauthn.Credential{})
 	gob.Register(&protocol.ParsedCredentialAssertionData{})
 	gob.Register(&protocol.ParsedCredentialCreationData{})
 	gob.Register(protocol.CredentialDescriptor{})
+
+	gob.Register([]any{})
 }
