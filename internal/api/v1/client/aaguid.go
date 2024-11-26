@@ -2,37 +2,12 @@ package client
 
 import (
 	"net/http"
-	"sync"
 	"uyulala/internal/api"
+	"uyulala/internal/mds"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/metadata"
 	"github.com/google/uuid"
 )
-
-var (
-	lock = sync.Mutex{}
-	meta map[uuid.UUID]*metadata.Entry
-)
-
-func getMeta() (map[uuid.UUID]*metadata.Entry, error) {
-	lock.Lock()
-	defer lock.Unlock()
-	m := meta
-	if m == nil {
-		tmp, err := metadata.Fetch()
-		if err != nil {
-			return nil, err
-		}
-		m = tmp.ToMap()
-		meta = m
-	}
-	return m, nil
-}
-
-func init() {
-	_, _ = getMeta()
-}
 
 func aaguidHandler(ctx *gin.Context) {
 	aaguid := ctx.Param("aaguid")
@@ -41,14 +16,12 @@ func aaguidHandler(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_aaguid", "Invalid aaguid", err)
 		return
 	}
-	var metaMap map[uuid.UUID]*metadata.Entry
-	if metaMap, err = getMeta(); err != nil {
-		api.AbortError(ctx, http.StatusBadGateway, "fetch", "unable to get production metadata from fido alliance", err)
+	meta, err := mds.Get(id)
+	if err != nil {
+		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-
-	meta, ok := metaMap[id]
-	if !ok {
+	if meta == nil {
 		api.AbortError(ctx, http.StatusNotFound, "no_aaguid", "No metadata for this aaguid", nil)
 		return
 	}

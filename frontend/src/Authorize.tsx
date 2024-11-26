@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import {useNavigate} from 'react-router-dom';
 import {ApiError} from "./Api/common.ts";
 import {useApi} from "./Context/Api.tsx";
+import * as jose from "jose/jwt/sign";
 
 export const Authorize = () => {
     const [params] = useSearchParams();
@@ -11,9 +12,15 @@ export const Authorize = () => {
     const [error, setError] = useState<ApiError>();
 
     useEffect(() => {
-        console.log("params", params);
         api.createOAuth2Challenge(params).then((response) => {
-            navigate(`/authenticator?id=${response.challenge_id}`, {replace: true});
+            const payload = {challenge_id: response.challenge_id, persistent: true};
+            const secret = new TextEncoder().encode(response.secret);
+            new jose.SignJWT(payload)
+                .setProtectedHeader({alg: 'HS256'})
+                .sign(secret)
+                .then(token => {
+                    navigate(`/authorize?token=${token}`);
+                })
         }).catch((error) => {
             setError(error);
         });

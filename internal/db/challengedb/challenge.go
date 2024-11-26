@@ -24,32 +24,39 @@ const (
 )
 
 func CreateChallenge(ctx *gin.Context, typ, appID string, expire time.Time,
-	publicData, privateData any, signatureText string, signatureData []byte, redirectURL string) (string, error) {
+	publicData, privateData any, signatureText string, signatureData []byte, redirectURL string) (string, string, error) {
 	var pubData, privData []byte
 	var err error
+	var secret uuid.UUID
+	secret, err = uuid.NewRandom()
+
+	if err != nil {
+		return "", "", err
+	}
 	if pubData, err = db.GobEncodeData(publicData); err != nil {
-		return "", err
+		return "", "", err
 	}
 	if privData, err = db.GobEncodeData(privateData); err != nil {
-		return "", err
+		return "", "", err
 	}
+
 	tx := gindb.GetTX(ctx)
-	res, err := tx.Queryx(`call create_challenge(?, ?, ?, ?, ?, ?, ?, ?, ?)`, db.GenerateID(8), typ, appID, expire,
+	res, err := tx.Queryx(`call create_challenge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, db.GenerateID(8), typ, appID, expire,
 		pubData, privData,
 		signatureText, signatureData,
-		redirectURL)
+		redirectURL, secret)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer res.Close()
 	var challengeID string
 	if !res.Next() {
-		return "", sql.ErrNoRows
+		return "", "", sql.ErrNoRows
 	}
 	if err := res.Scan(&challengeID); err != nil {
-		return "", err
+		return "", "", err
 	}
-	return challengeID, nil
+	return challengeID, secret.String(), nil
 }
 
 type Data struct {
@@ -71,6 +78,7 @@ type Data struct {
 	Status        string `db:"status"`
 	RedirectURL   string `db:"redirect_url"`
 	OAuth2Context string `db:"oauth2_context"`
+	Secret        string `db:"secret"`
 }
 
 func (c *Data) GetOAuth2Context() url.Values {
@@ -180,6 +188,24 @@ func GetChallenge(ctx *gin.Context, challengeID string) (ch *Data, err error) {
 }
 
 func SignChallenge(ctx *gin.Context, challengeID string, signature *protocol.ParsedCredentialAssertionData, credential *webauthn.Credential) error {
+	tx := gindb.GetTX(ctx)
+
+	sig, err := db.GobEncodeData(signature)
+	if err != nil {
+		return err
+	}
+	cred, err := db.GobEncodeData(credential)
+	if err != nil {
+		return err
+	}
+	if err := SetChallengeStatus(ctx, challengeID, StatusSigned); err != nil {
+		return err
+	}
+	_, err = tx.Exec(`call sign_challenge(?, ?, ?)`, challengeID, sig, cred)
+	return err
+}
+
+func SignCreationChallenge(ctx *gin.Context, challengeID string, signature *protocol.ParsedCredentialCreationData, credential *webauthn.Credential) error {
 	tx := gindb.GetTX(ctx)
 
 	sig, err := db.GobEncodeData(signature)

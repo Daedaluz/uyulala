@@ -267,6 +267,7 @@ CREATE OR REPLACE TABLE challenges
     redirect_url   VARCHAR(250)                                                 NOT NULL,
     oauth2_context VARCHAR(1024)                                                NOT NULL DEFAULT '',
     status         ENUM ('pending', 'viewed', 'signed', 'collected','rejected') NOT NULL DEFAULT 'pending',
+    secret         VARCHAR(36),
     CONSTRAINT FOREIGN KEY challenges_app_id (app_id) REFERENCES applications (id) ON DELETE SET NULL
 );
 
@@ -279,7 +280,7 @@ CREATE OR REPLACE TABLE challenge_codes
 
 CREATE OR REPLACE TABLE challenge_ciba_request_ids
 (
-    request_id VARCHAR(36) PRIMARY KEY,
+    request_id   VARCHAR(36) PRIMARY KEY,
     challenge_id VARCHAR(36),
     CONSTRAINT FOREIGN KEY challenge_ciba_request_ids_challenge_id (challenge_id) REFERENCES challenges (id) ON DELETE CASCADE
 );
@@ -337,7 +338,8 @@ BEGIN
            signed,
            redirect_url,
            oauth2_context,
-           status
+           status,
+           secret
     FROM challenge_codes c
              RIGHT JOIN challenges c2 on c.challenge_id = c2.id
     WHERE c.code = code;
@@ -354,12 +356,12 @@ CREATE OR REPLACE PROCEDURE create_challenge(IN challenge_id VARCHAR(36), IN typ
                                              IN private_data BLOB,
                                              IN signature_text TEXT COLLATE utf8mb4_unicode_ci,
                                              IN signature_data BLOB,
-                                             IN redirect_url VARCHAR(250))
+                                             IN redirect_url VARCHAR(250), secret VARCHAR(36))
 BEGIN
     INSERT INTO challenges(id, type, app_id, expire, public_data, private_data, signature_text, signature_data,
-                           redirect_url)
+                           redirect_url, secret)
     VALUES (challenge_id, type, app_id, expire, public_data, private_data, signature_text, signature_data,
-            redirect_url);
+            redirect_url, secret);
     SELECT challenge_id;
 END;
 
@@ -390,7 +392,8 @@ BEGIN
            signed,
            redirect_url,
            oauth2_context,
-           status
+           status,
+           secret
     FROM challenges
     WHERE id = challenge_id;
 END;

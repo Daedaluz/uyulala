@@ -3,7 +3,7 @@ import {useLocation, useNavigate, useSearchParams} from "react-router-dom";
 import {Key, UserWithKeys} from "../Api/admin.ts";
 import {useApi} from "../Context/Api.tsx";
 import {BIDResponse} from "../Api/private.ts";
-import {ApiError} from "../Api/common.ts";
+import {ApiError, ChallengeResponse} from "../Api/common.ts";
 import {
     Accordion, AccordionActions, AccordionDetails,
     AccordionSummary,
@@ -15,11 +15,11 @@ import {
     Switch,
     TextField,
     Typography, Table, TableHead, TableBody, TableRow, TableCell, Badge, Popover,
-
 } from "@mui/material";
 import {useMDS} from "../Hooks/useMDS.ts";
 import {InfoRounded} from "@mui/icons-material";
 import {useLocalStorage} from "../Hooks/useLocalStorage.ts";
+import {AnimatedQR} from "../Components/AnimatedQR.tsx";
 
 interface User {
     id: string;
@@ -58,7 +58,8 @@ const AAGUID = ({aaguid}: { aaguid: string }) => {
 
     const content = metadata !== null ? <>
         <InfoRounded fontSize={'small'} onClick={handleShow}/>
-        <img alt="metaImage" src={metadata.metadataStatement.icon ?? `data:${metadata.metadataStatement.Icon.Opaque}`} height={32} width={32}/>
+        <img alt="metaImage" src={metadata.metadataStatement.icon ?? `data:${metadata.metadataStatement.Icon.Opaque}`}
+             height={32} width={32}/>
         {metadata.metadataStatement.description}
         <Popover open={show} onClose={() => setShow(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}>
             <pre>
@@ -76,26 +77,31 @@ type UserViewProps = {
     name: string;
     text: string;
     verify: boolean;
+    setChallenge: (challenge: ChallengeResponse) => void;
+    setStartTime: (startTime: Date) => void;
+    setResult: (response: BIDResponse | ApiError | null) => void;
 }
-const UserView = ({name, verify, user, text}: UserViewProps) => {
+const UserView = ({name, verify, user, text, setStartTime, setChallenge, setResult}: UserViewProps) => {
     const keys = user.keys.map((userKey, i) => <UserKey key={i} user={user} userKey={userKey}/>);
     const {adminApi, privateApi} = useApi();
-    const navigate = useNavigate();
     const addKey = () => {
+        setResult(null);
         adminApi.addUserKey(name, user.id).then(res => {
-            navigate(`/authenticator?id=${res.challenge_id}`)
+            setChallenge(res);
+            setStartTime(new Date);
         });
     }
 
     const authenticate = () => {
+        setResult(null);
         privateApi.sign({
             userId: user.id,
-            redirect: window.location.toString(),
-            timeout: 60000,
+            timeout: 120,
             text: text,
             userVerification: verify ? 'required' : 'discouraged'
         }).then(res => {
-            navigate(`/authenticator?id=${res.challenge_id}`)
+            setChallenge(res);
+            setStartTime(new Date);
         });
     }
 
@@ -153,6 +159,10 @@ export const DemoPage = () => {
 
     const [signText, setSignText] = useState<string>('');
 
+
+    const [challenge, setChallenge] = useState<ChallengeResponse | null>(null);
+    const [startTime, setStartTime] = useState<Date>(new Date());
+
     useEffect(() => {
         if (params.get('challengeId') !== undefined) {
             navigate('', {replace: true, state: {challengeId: params.get('challengeId')}})
@@ -179,21 +189,46 @@ export const DemoPage = () => {
     }, [adminApi]);
 
     const authenticate = () => {
+        setResult(null);
         privateApi.sign({
-            redirect: window.location.toString(),
-            timeout: 60000,
+            timeout: 120,
             text: signText,
             userVerification: requireUserVerification ? 'required' : 'discouraged'
         }).then(res => {
-            navigate(`/authenticator?id=${res.challenge_id}`)
+            setStartTime(() => new Date);
+            setChallenge(() => res);
         });
     }
 
     const registerUser = () => {
+        setResult(null);
         adminApi.registerUser(name).then((res) => {
-            navigate(`/authenticator?id=${res.challenge_id}`)
+            setChallenge(() => res);
+            setStartTime(() => new Date);
         })
     }
+
+    useEffect(() => {
+        if (challenge !== null) {
+            const interval = setInterval(() => {
+                privateApi.collect(challenge.challenge_id).then((res) => {
+                    setResult(res);
+                    window.clearInterval(interval);
+                    setChallenge(null);
+                    adminApi.listUsers().then((res) => {
+                        setUsers(res);
+                    });
+                }).catch(e => {
+                    setResult(e);
+                    if(e.status !== 'pending' && e.status !== 'viewed') {
+                        window.clearInterval(interval);
+                        setChallenge(null);
+                    }
+                });
+            }, 500);
+            return () => window.clearInterval(interval);
+        }
+    }, [challenge, privateApi]);
 
     const resp = result as BIDResponse;
     const alertSeverity = useMemo(() => {
@@ -247,6 +282,9 @@ export const DemoPage = () => {
                     <Button variant="contained" onClick={authenticate}>Authenticate any user</Button>
                 </FormGroup>
             </FormGroup>
+            {challenge !== null &&
+                <AnimatedQR challenge={challenge!} startTime={startTime}/>
+            }
             {result &&
                 <Alert severity={alertSeverity} style={{width: '90vw'}}>
                     <AlertTitle>Result</AlertTitle>
@@ -259,6 +297,9 @@ export const DemoPage = () => {
                                                    text={signText}
                                                    name={name}
                                                    verify={requireUserVerification}
+                                                   setChallenge={setChallenge}
+                                                   setStartTime={setStartTime}
+                                                   setResult={setResult}
                 />)}
             </div>
         </div>

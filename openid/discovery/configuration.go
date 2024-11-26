@@ -109,6 +109,9 @@ type Required struct {
 
 	// URL of the OP's Backchannel Authentication Endpoint.
 	BackChannelAuthenticationEndpoint string `json:"backchannel_authentication_endpoint,omitempty"`
+
+	// URL of the OP's Backchannel QR Code Authentication Endpoint.
+	BackChannelQRCodeAuthenticationEndpoint string `json:"backchannel_qr_code_authentication_endpoint,omitempty"`
 }
 
 type Optional struct {

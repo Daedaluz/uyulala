@@ -1,8 +1,6 @@
 package user
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"log/slog"
 	"net/http"
 	"time"
@@ -11,6 +9,9 @@ import (
 	"uyulala/internal/authn"
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type CreateKeyRequest struct {
@@ -75,10 +76,10 @@ func addKey(c *gin.Context) {
 	}
 
 	expires := time.Now().Add(time.Duration(req.Timeout) * time.Second)
-	challengeID, err := challengedb.CreateChallenge(c, "webauthn.create", "", expires, credential, sessionData, "", []byte{}, req.Redirect)
+	challengeID, secret, err := challengedb.CreateChallenge(c, "webauthn.create", "", expires, credential, sessionData, "", []byte{}, req.Redirect)
 	if err != nil {
 		api.AbortError(c, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	api.ChallengeResponse(c, challengeID)
+	api.ChallengeResponse(c, challengeID, secret)
 }

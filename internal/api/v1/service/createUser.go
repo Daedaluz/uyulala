@@ -1,8 +1,6 @@
 package service
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"log/slog"
 	"net/http"
 	"time"
@@ -11,6 +9,9 @@ import (
 	"uyulala/internal/authn"
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type CreateUserRequest struct {
@@ -64,9 +65,11 @@ func createUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	if !api.AllowedRedirect(application.GetCurrentApplication(ctx), userRegistration.Redirect) {
-		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Redirect not allowed", nil)
-		return
+	if userRegistration.Redirect != "" {
+		if !api.AllowedRedirect(application.GetCurrentApplication(ctx), userRegistration.Redirect) {
+			api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Redirect not allowed", nil)
+			return
+		}
 	}
 
 	cfg := authn.CreateWebauthnConfig()
@@ -80,10 +83,10 @@ func createUserHandler(ctx *gin.Context) {
 	}
 	expires := time.Now().Add(time.Duration(userRegistration.Timeout) * time.Second)
 	app := application.GetCurrentApplication(ctx)
-	challengeID, err := challengedb.CreateChallenge(ctx, "webauthn.create", app.ID, expires, credential, sessionData, "", []byte{}, userRegistration.Redirect)
+	challengeID, secret, err := challengedb.CreateChallenge(ctx, "webauthn.create", app.ID, expires, credential, sessionData, "", []byte{}, userRegistration.Redirect)
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	api.ChallengeResponse(ctx, challengeID)
+	api.ChallengeResponse(ctx, challengeID, secret)
 }

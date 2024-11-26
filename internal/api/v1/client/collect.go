@@ -34,42 +34,50 @@ type SignatureData struct {
 }
 
 type CollectResponseExp struct {
-	ChallengeID   string                                  `json:"challengeId"`
-	UserID        string                                  `json:"userId"`
-	SignatureData SignatureData                           `json:"signatureData"`
-	PublicData    *protocol.CredentialAssertion           `json:"assertion"`
-	Signature     *protocol.ParsedCredentialAssertionData `json:"signature"`
-	Credential    *webauthn.Credential                    `json:"credential"`
-	Signed        time.Time                               `json:"signed"`
-	Status        string                                  `json:"status"`
+	ChallengeID          string                                  `json:"challengeId"`
+	UserID               string                                  `json:"userId"`
+	SignatureData        SignatureData                           `json:"signatureData"`
+	PublicData           *protocol.CredentialAssertion           `json:"assertion"`
+	AssertionSignature   *protocol.ParsedCredentialAssertionData `json:"assertionSignature,omitempty"`
+	AttestationSignature *protocol.ParsedCredentialCreationData  `json:"attestationSignature,omitempty"`
+	Credential           *webauthn.Credential                    `json:"credential"`
+	Signed               time.Time                               `json:"signed"`
+	Status               string                                  `json:"status"`
 }
 
 type CollectResponse struct {
-	ChallengeID   string                                  `json:"challengeId"`
-	UserID        string                                  `json:"userId"`
-	Status        string                                  `json:"status"`
-	Signed        time.Time                               `json:"signed"`
-	UserPresent   bool                                    `json:"userPresent"`
-	UserVerified  bool                                    `json:"userVerified"`
-	PublicKey     []byte                                  `json:"publicKey"`
-	Response      protocol.AuthenticatorAssertionResponse `json:"assertionResponse"`
-	Challenge     protocol.URLEncodedBase64               `json:"challenge"`
-	SignatureData SignatureData                           `json:"signatureData"`
+	ChallengeID         string                                     `json:"challengeId"`
+	UserID              string                                     `json:"userId"`
+	Status              string                                     `json:"status"`
+	Signed              time.Time                                  `json:"signed"`
+	UserPresent         bool                                       `json:"userPresent"`
+	UserVerified        bool                                       `json:"userVerified"`
+	PublicKey           []byte                                     `json:"publicKey"`
+	AssertionResponse   *protocol.AuthenticatorAssertionResponse   `json:"assertionResponse,omitempty"`
+	AttestationResponse *protocol.AuthenticatorAttestationResponse `json:"attestationResponse,omitempty"`
+	Challenge           protocol.URLEncodedBase64                  `json:"challenge"`
+	SignatureData       SignatureData                              `json:"signatureData"`
 }
 
 func (c *CollectResponseExp) Response() *CollectResponse {
-	return &CollectResponse{
+	res := &CollectResponse{
 		ChallengeID:   c.ChallengeID,
 		UserID:        c.UserID,
 		Status:        c.Status,
 		Signed:        c.Signed,
-		UserPresent:   c.Signature.Response.AuthenticatorData.Flags.UserPresent(),
-		UserVerified:  c.Signature.Response.AuthenticatorData.Flags.UserVerified(),
 		PublicKey:     c.Credential.PublicKey,
-		Response:      c.Signature.Raw.AssertionResponse,
 		Challenge:     c.PublicData.Response.Challenge,
 		SignatureData: c.SignatureData,
 	}
+	if c.AttestationSignature != nil {
+		res.AttestationResponse = &c.AttestationSignature.Raw.AttestationResponse
+	}
+	if c.AssertionSignature != nil {
+		res.AssertionResponse = &c.AssertionSignature.Raw.AssertionResponse
+		res.UserPresent = c.AssertionSignature.Response.AuthenticatorData.Flags.UserPresent()
+		res.UserVerified = c.AssertionSignature.Response.AuthenticatorData.Flags.UserVerified()
+	}
+	return res
 }
 
 func collectResponseFromChallenge(challenge *challengedb.Data) *CollectResponseExp {
@@ -80,7 +88,15 @@ func collectResponseFromChallenge(challenge *challengedb.Data) *CollectResponseE
 		Signed:        challenge.Signed.Time,
 	}
 	_ = db.GobDecodeData(challenge.PubData, &res.PublicData)
-	_ = db.GobDecodeData(challenge.Signature, &res.Signature)
+	_ = db.GobDecodeData(challenge.Signature, &res.AssertionSignature)
+	if res.AssertionSignature.Raw.AssertionResponse.ClientDataJSON == nil {
+		res.AssertionSignature = nil
+	}
+	_ = db.GobDecodeData(challenge.Signature, &res.AttestationSignature)
+	if res.AttestationSignature.Raw.AttestationResponse.ClientDataJSON == nil {
+		res.AttestationSignature = nil
+	}
+
 	_ = db.GobDecodeData(challenge.Credential, &res.Credential)
 	return res
 }
@@ -122,7 +138,13 @@ func collectBIDFlow(context *gin.Context, app *appdb.Application) {
 	}
 
 	response := collectResponseFromChallenge(challenge)
-	key, err := userdb.GetKey(context, response.Signature.RawID)
+	var id []byte
+	if response.AssertionSignature != nil {
+		id = response.AssertionSignature.RawID
+	} else {
+		id = response.AttestationSignature.Raw.RawID
+	}
+	key, err := userdb.GetKey(context, id)
 	if err != nil {
 		api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
@@ -153,8 +175,8 @@ func createIDToken(context *gin.Context, sessionID, userID, nonce string, app *a
 	_ = token.Set("auth_time", lastAuth.Unix())
 	_ = token.Set("iat", time.Now().Unix())
 	if response != nil {
-		_ = token.Set("uv", response.Signature.Response.AuthenticatorData.Flags.UserVerified())
-		_ = token.Set("up", response.Signature.Response.AuthenticatorData.Flags.UserPresent())
+		_ = token.Set("uv", response.AssertionSignature.Response.AuthenticatorData.Flags.UserVerified())
+		_ = token.Set("up", response.AssertionSignature.Response.AuthenticatorData.Flags.UserPresent())
 	}
 
 	if sessionID != "" {
@@ -250,7 +272,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			}
 			return false
 		})
-		userKey, err := userdb.GetKey(context, response.Signature.RawID)
+		userKey, err := userdb.GetKey(context, response.AssertionSignature.RawID)
 		if err != nil {
 			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 			return
@@ -338,7 +360,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			return false
 		})
 		// TODO: Check ciba flow
-		userKey, err := userdb.GetKey(context, response.Signature.RawID)
+		userKey, err := userdb.GetKey(context, response.AssertionSignature.RawID)
 		if err != nil {
 			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 			return

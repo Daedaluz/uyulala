@@ -3,12 +3,13 @@ package public
 import (
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
 	"net/url"
 	api2 "uyulala/internal/api"
 	"uyulala/internal/db/challengedb"
+
+	"github.com/gin-gonic/gin"
 )
 
 func rejectChallengeHandler(context *gin.Context) {

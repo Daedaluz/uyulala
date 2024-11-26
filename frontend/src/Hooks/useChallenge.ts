@@ -45,3 +45,46 @@ export const useChallenge = (id: string) => {
 
     return {assertOptions, createOptions, app, signData, loading, error}
 }
+
+export const useChallengePost = (token: string) => {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<ApiError | undefined>();
+    const {publicApi: api} = useApi();
+    const [createOptions, setCreateOptions] = useState<CredentialCreationOptions | null>(null);
+    const [assertOptions, setAssertOptions] = useState<CredentialRequestOptions | null>(null);
+    const [signData, setSignData] = useState<SignData | undefined>(undefined);
+    const [app, setApp] = useState<App>({
+        admin: false,
+        description: "",
+        icon: "",
+        name: "",
+        publicKey: ""
+    });
+
+    useEffect(() => {
+        if (token) {
+            setLoading(true);
+            setError(undefined);
+            setAssertOptions(null);
+            setCreateOptions(null);
+            api.getChallengePost(token).then(challenge => {
+                setApp(challenge.app);
+                setSignData(challenge.signData);
+                if (challenge instanceof ICredentialRequestOptions) {
+                    setAssertOptions(challenge);
+                } else {
+                    setCreateOptions(challenge);
+                }
+            }).catch(e => {
+                setError(e);
+            }).finally(() => {
+                setLoading(false);
+            });
+        } else {
+            setLoading(false);
+            setError({msg: "No token provided", error: "no_token", technicalMsg: "No token provided", code: 0});
+        }
+    }, [token, api]);
+
+    return {assertOptions, createOptions, app, signData, loading, error}
+}

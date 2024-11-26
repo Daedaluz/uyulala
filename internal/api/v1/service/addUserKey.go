@@ -1,8 +1,6 @@
 package service
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"log/slog"
 	"net/http"
 	"time"
@@ -11,6 +9,9 @@ import (
 	"uyulala/internal/authn"
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type CreateKeyRequest struct {
@@ -66,17 +67,20 @@ func createKeyHandler(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	if !api.AllowedRedirect(application.GetCurrentApplication(ctx), req.Redirect) {
-		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Redirect not allowed", nil)
-		return
+
+	if req.Redirect != "" {
+		if !api.AllowedRedirect(application.GetCurrentApplication(ctx), req.Redirect) {
+			api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Redirect not allowed", nil)
+			return
+		}
 	}
 
 	expires := time.Now().Add(time.Duration(req.Timeout) * time.Second)
 	app := application.GetCurrentApplication(ctx)
-	challengeID, err := challengedb.CreateChallenge(ctx, "webauthn.create", app.ID, expires, credential, sessionData, "", []byte{}, req.Redirect)
+	challengeID, secret, err := challengedb.CreateChallenge(ctx, "webauthn.create", app.ID, expires, credential, sessionData, "", []byte{}, req.Redirect)
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	api.ChallengeResponse(ctx, challengeID)
+	api.ChallengeResponse(ctx, challengeID, secret)
 }

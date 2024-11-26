@@ -61,7 +61,7 @@ export class adminApi {
                 Authorization: this.authHeader,
                 ['Content-Type']: 'application/json'
             },
-            body: JSON.stringify({suggestedName: name, timeout: 380, redirect: location.toString()})
+            body: JSON.stringify({suggestedName: name, timeout: 120})
         })
     }
 
@@ -72,7 +72,7 @@ export class adminApi {
                 Authorization: this.authHeader,
                 ['Content-Type']: 'application/json'
             },
-            body: JSON.stringify({suggestedName: name, userId: uid, timeout: 380, redirect: location.toString()})
+            body: JSON.stringify({suggestedName: name, userId: uid, timeout: 380})
         })
     }
 

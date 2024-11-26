@@ -2,7 +2,6 @@ import {ChallengeResponse, fetchJSON} from "./common.ts";
 import {Base64} from "basejs";
 import {SignData} from "./public.ts";
 
-
 type SignRequest = {
     userId?: string;
     userVerification?: "required" | "preferred" | "discouraged";
