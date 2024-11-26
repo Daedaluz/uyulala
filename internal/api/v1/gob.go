@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/gob"
+
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
@@ -19,5 +20,6 @@ func init() {
 
 	gob.Register(&webauthn.Credential{})
 	gob.Register(&protocol.ParsedCredentialAssertionData{})
+	gob.Register(&protocol.ParsedCredentialCreationData{})
 	gob.Register(protocol.CredentialDescriptor{})
 }
