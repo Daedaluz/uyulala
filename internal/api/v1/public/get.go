@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/spf13/viper"
 )
 
 type getChallengeClaims struct {
@@ -67,7 +68,7 @@ func getChallengeHandlerPost(ctx *gin.Context) {
 		backendDuration := time.Since(data.Created)
 		frontendDuration := time.Second * time.Duration(claims.Duration)
 		timeDiff := (backendDuration - frontendDuration).Abs()
-		if timeDiff > time.Second*3 {
+		if timeDiff > viper.GetDuration("challenge.max_time_diff") {
 			api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Token too old", nil)
 			return
 		}

@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"github.com/go-sql-driver/mysql"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"log/slog"
 	"net/http"
 	"os"
 	"uyulala/internal/mysqlslog"
+
+	"github.com/go-sql-driver/mysql"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var cfgFile string
@@ -67,6 +68,8 @@ func initConfig() {
 	viper.SetDefault("http.maxHeaderBytes", http.DefaultMaxHeaderBytes)
 	viper.SetDefault("http.cache_control", "no-cache, no-store, must-revalidate")
 	viper.SetDefault("http.referer_policy", "origin")
+
+	viper.SetDefault("challenge.max_time_diff", "5s")
 
 	viper.AutomaticEnv() // read in environment variables that match
 	// If a config file is found, read it in.
