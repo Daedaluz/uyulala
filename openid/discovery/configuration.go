@@ -378,6 +378,9 @@ type Full struct {
 
 	// URL of the OP's Backchannel Authentication Endpoint.
 	BackChannelAuthenticationEndpoint string `json:"backchannel_authentication_endpoint,omitempty"`
+
+	// URL of the OP's Backchannel QR Code Authentication Endpoint.
+	BackChannelAuthenticationQREndpoint string `json:"backchannel_authentication_qr_endpoint,omitempty"`
 }
 
 func (f *Full) AddSupportedIDTokenSigningAlg(alg string) {
@@ -425,6 +428,7 @@ func NewConfig(config *Required, optional *Optional) *Full {
 		OpTosURI:                                   "",
 		BackChannelTokenDeliveryModesSupported:     nil,
 		BackChannelAuthenticationEndpoint:          "",
+		BackChannelAuthenticationQREndpoint:        "",
 	}
 	x, _ := json.Marshal(config)
 	_ = json.Unmarshal(x, res)
