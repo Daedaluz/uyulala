@@ -359,7 +359,7 @@ func collectOAuth2Flow(context *gin.Context, app *appdb.Application) {
 			}
 			return false
 		})
-		// TODO: Check ciba flow
+
 		userKey, err := userdb.GetKey(context, response.AssertionSignature.RawID)
 		if err != nil {
 			api.AbortError(context, http.StatusInternalServerError, "internal_error", "Unexpected error", err)

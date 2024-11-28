@@ -157,7 +157,7 @@ func (c *Data) ValidateOAuthCollect(ctx *gin.Context) bool {
 	case StatusPending:
 		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to view the challenge")
 	case StatusViewed:
-		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "authorization_pending", "Waiting for user to sign the challenge")
+		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "authorization_viewed", "Waiting for user to sign the challenge")
 	case StatusRejected:
 		api.OAuth2ErrorResponse(ctx, http.StatusBadRequest, "access_denied", "Challenge has been rejected")
 	case StatusCollected:

@@ -5,7 +5,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 	"unicode/utf8"
 	"uyulala/internal/api"
@@ -19,7 +18,6 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/spf13/viper"
 )
 
 type CreateBIDChallengeRequest struct {
@@ -285,19 +283,6 @@ func createCIBAChallenge(ctx *gin.Context) {
 
 	cibaRequestID, err := challengedb.CreateCIBARequestID(ctx, challenge)
 	if err != nil {
-		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
-		return
-	}
-
-	urlTemplate := template.New("")
-	urlTemplate = urlTemplate.Delims("{", "}")
-	urlTemplate, err = urlTemplate.Parse(viper.GetString("ciba.qrTemplate"))
-	if err != nil {
-		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
-		return
-	}
-	var url strings.Builder
-	if err := urlTemplate.Execute(&url, map[string]string{"challengeId": challenge}); err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
