@@ -19,7 +19,7 @@ export const Authorize = () => {
                 .setProtectedHeader({alg: 'HS256'})
                 .sign(secret)
                 .then(token => {
-                    navigate(`/authorize?token=${token}`);
+                    navigate(`/authenticator?token=${token}`);
                 })
         }).catch((error) => {
             setError(error);

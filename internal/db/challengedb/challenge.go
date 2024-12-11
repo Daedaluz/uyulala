@@ -24,11 +24,10 @@ const (
 )
 
 func CreateChallenge(ctx *gin.Context, typ, appID string, expire time.Time,
-	publicData, privateData any, signatureText string, signatureData []byte, redirectURL string) (string, string, error) {
+	publicData, privateData any, signatureText string, signatureData []byte, redirectURL string) (challengeID string, secret string, err error) {
 	var pubData, privData []byte
-	var err error
-	var secret uuid.UUID
-	secret, err = uuid.NewRandom()
+	var secretToken uuid.UUID
+	secretToken, err = uuid.NewRandom()
 
 	if err != nil {
 		return "", "", err
@@ -44,19 +43,18 @@ func CreateChallenge(ctx *gin.Context, typ, appID string, expire time.Time,
 	res, err := tx.Queryx(`call create_challenge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, db.GenerateID(8), typ, appID, expire,
 		pubData, privData,
 		signatureText, signatureData,
-		redirectURL, secret)
+		redirectURL, secretToken)
 	if err != nil {
 		return "", "", err
 	}
 	defer res.Close()
-	var challengeID string
 	if !res.Next() {
 		return "", "", sql.ErrNoRows
 	}
 	if err := res.Scan(&challengeID); err != nil {
 		return "", "", err
 	}
-	return challengeID, secret.String(), nil
+	return challengeID, secretToken.String(), nil
 }
 
 type Data struct {
