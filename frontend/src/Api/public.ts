@@ -75,6 +75,9 @@ export class publicApi {
     sign(id: string, data: Credential) {
         const body = authnEncode(data)
         return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge`, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
             method: "PUT",
             body: new URLSearchParams([["token", id], ["response", JSON.stringify(body)]]).toString(),
         });
