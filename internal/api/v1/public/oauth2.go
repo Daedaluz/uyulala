@@ -22,21 +22,6 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
-func parseRedirectURI(vars url.Values) (*url.URL, error) {
-	uri := vars.Get("redirect_uri")
-	if uri == "" {
-		return nil, errors.New("missing redirect_uri")
-	}
-	parsed, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-	if parsed.Fragment != "" {
-		return nil, errors.New("invalid redirect_uri (Must not contain fragment)")
-	}
-	return parsed, nil
-}
-
 func createOAuth2ChallengeHandler(ctx *gin.Context) {
 	if err := ctx.Request.ParseForm(); err != nil {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid request", err)

@@ -1,8 +1,7 @@
 package public
 
 import (
-	"database/sql"
-	"errors"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -52,8 +51,13 @@ func signLogin(context *gin.Context, challenge *challengedb.Data) {
 		return
 	}
 	response := &protocol.CredentialAssertionResponse{}
-	if err := context.BindJSON(response); err != nil {
-		slog.Error("signLogin BindJSON", "error", err)
+	data, _ := context.GetPostForm("response")
+	if data == "" {
+		api.AbortError(context, http.StatusBadRequest, "invalid_response", "No response provided", nil)
+		return
+	}
+	if err := json.Unmarshal([]byte(data), response); err != nil {
+		slog.Error("signLogin Unmarshal response", "error", err)
 		api.AbortError(context, http.StatusBadRequest, "invalid_response", "Invalid response", err)
 		return
 	}
@@ -143,8 +147,13 @@ func signCreate(context *gin.Context, challenge *challengedb.Data) {
 	}
 
 	response := &protocol.CredentialCreationResponse{}
-	if err := context.BindJSON(response); err != nil {
-		slog.Error("signCreate BindJSON", "error", err)
+	data, _ := context.GetPostForm("response")
+	if data == "" {
+		api.AbortError(context, http.StatusBadRequest, "invalid_response", "No response provided", nil)
+		return
+	}
+	if err := json.Unmarshal([]byte(data), response); err != nil {
+		slog.Error("signLogin Unmarshal response", "error", err)
 		api.AbortError(context, http.StatusBadRequest, "invalid_response", "Invalid response", err)
 		return
 	}
@@ -192,26 +201,15 @@ func signCreate(context *gin.Context, challenge *challengedb.Data) {
 	api.RedirectResponse(context, challenge.RedirectURL)
 }
 
-func signChallengeHandler(context *gin.Context) {
-	challengeID := context.Param("id")
-	challenge, err := challengedb.GetChallenge(context, challengeID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			api.AbortError(context, http.StatusNotFound, "not_found", "Challenge not found", err)
-			return
-		}
-		slog.Error("signChallengeHandler GetChallenge", "error", err)
-		api.AbortError(context, http.StatusInternalServerError, "invalid_challenge", "Unexpected error", err)
+func signChallengeHandler(ctx *gin.Context) {
+	challenge, ok := getVerifiedChallenge(ctx, false)
+	if !ok {
 		return
 	}
-	if !challenge.Validate(context) {
-		return
-	}
-
 	switch challenge.Type {
 	case "webauthn.get":
-		signLogin(context, challenge)
+		signLogin(ctx, challenge)
 	case "webauthn.create":
-		signCreate(context, challenge)
+		signCreate(ctx, challenge)
 	}
 }

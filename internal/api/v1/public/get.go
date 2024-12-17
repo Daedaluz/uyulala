@@ -2,7 +2,6 @@ package public
 
 import (
 	"net/http"
-	"time"
 	"uyulala/internal/api"
 	"uyulala/internal/db/appdb"
 	"uyulala/internal/db/challengedb"
@@ -10,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/spf13/viper"
 )
 
 type getChallengeClaims struct {
@@ -44,36 +42,9 @@ func (g getChallengeClaims) GetAudience() (jwt.ClaimStrings, error) {
 }
 
 func getChallengeHandlerPost(ctx *gin.Context) {
-	tokenString, ok := ctx.GetPostForm("token")
+	var err error
+	data, ok := getVerifiedChallenge(ctx, true)
 	if !ok {
-		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Missing 'token' post parameter", nil)
-		return
-	}
-	claims := &getChallengeClaims{}
-	var data *challengedb.Data
-	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
-		var err error
-		challengeID := claims.QRData
-		data, err = challengedb.GetChallenge(ctx, challengeID)
-		if err != nil {
-			return nil, err
-		}
-		return []byte(data.Secret), nil
-	}, jwt.WithoutClaimsValidation())
-	if err != nil {
-		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid token", err)
-		return
-	}
-	if !claims.Persistent {
-		backendDuration := time.Since(data.Created)
-		frontendDuration := time.Second * time.Duration(claims.Duration)
-		timeDiff := (backendDuration - frontendDuration).Abs()
-		if timeDiff > viper.GetDuration("challenge.max_time_diff") {
-			api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Token too old", nil)
-			return
-		}
-	}
-	if !data.Validate(ctx) {
 		return
 	}
 	var challengeRes any

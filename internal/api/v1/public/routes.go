@@ -6,10 +6,8 @@ import (
 
 func AddRoutes(g *gin.RouterGroup) {
 	g.POST("/challenge", getChallengeHandlerPost)
-	g.POST("/challenge/:id", signChallengeHandler)
-	g.DELETE("/challenge/:id", rejectChallengeHandler)
+	g.PUT("/challenge", signChallengeHandler)
+	g.DELETE("/challenge", rejectChallengeHandler)
 
 	g.POST("/oauth2", createOAuth2ChallengeHandler)
-
-	g.GET("/remote/:id", remoteHandler)
 }

@@ -1,5 +1,4 @@
 import {ChallengeResponse, authnEncode, fetchJSON, authnDecode, RedirectResponse} from "./common.ts";
-import {decodeJwt} from "jose";
 
 export type SignData = {
     text: string;
@@ -53,20 +52,6 @@ export class publicApi {
         this.url = url;
     }
 
-    getChallenge(id: string) {
-        return fetchJSON<JSONChallenge>(`${this.url}/api/v1/challenge/${id}`).then(challenge => {
-            const pubKey = authnDecode(challenge);
-            switch (challenge.type) {
-                case "webauthn.create":
-                    return new ICredentialCreationOptions(pubKey.publicKey, challenge.app, challenge.signData);
-                case "webauthn.get":
-                    return new ICredentialRequestOptions(pubKey.publicKey, challenge.app, challenge.signData);
-                default:
-                    throw new Error("Invalid challenge type");
-            }
-        })
-    }
-
     getChallengePost(token: string) {
         return fetchJSON<JSONChallenge>(`${this.url}/api/v1/challenge`, {
             method: "POST",
@@ -87,6 +72,24 @@ export class publicApi {
         })
     }
 
+    sign(id: string, data: Credential) {
+        const body = authnEncode(data)
+        return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge`, {
+            method: "PUT",
+            body: new URLSearchParams([["token", id], ["response", JSON.stringify(body)]]).toString(),
+        });
+    }
+
+    reject(challenge: string) {
+        return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge`, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            method: "DELETE",
+            body: new URLSearchParams([["token", challenge]]).toString()
+        });
+    }
+
     createOAuth2Challenge(urlParameters: URLSearchParams) {
         return fetchJSON<ChallengeResponse>(`${this.url}/api/v1/oauth2`, {
             method: "POST",
@@ -95,21 +98,5 @@ export class publicApi {
             },
             body: urlParameters.toString(),
         })
-    }
-
-    sign(id: string, data: Credential) {
-        const body = authnEncode(data)
-        const token = decodeJwt(id);
-        return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge/${token.challenge_id}`, {
-            method: "POST",
-            body: JSON.stringify(body)
-        });
-    }
-
-    reject(challenge: string) {
-        const token = decodeJwt(challenge);
-        return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge/${token.challenge_id}`, {
-            method: "DELETE"
-        });
     }
 }

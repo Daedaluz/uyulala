@@ -1,11 +1,12 @@
 package oidc
 
 import (
-	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
 	"uyulala/internal/api"
 	"uyulala/internal/api/application"
+
+	"github.com/gin-gonic/gin"
 )
 
 func userinfo(c *gin.Context) {
