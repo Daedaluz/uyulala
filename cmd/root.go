@@ -66,8 +66,8 @@ func initConfig() {
 	viper.SetDefault("http.writeTimeout", "5s")
 	viper.SetDefault("http.idleTimeout", "5s")
 	viper.SetDefault("http.maxHeaderBytes", http.DefaultMaxHeaderBytes)
-	viper.SetDefault("http.cache_control", "no-cache, no-store, must-revalidate")
-	viper.SetDefault("http.referer_policy", "origin")
+	viper.SetDefault("http.cacheControl", "no-cache, no-store, must-revalidate")
+	viper.SetDefault("http.refererPolicy", "origin")
 
 	viper.SetDefault("challenge.max_time_diff", "5s")
 

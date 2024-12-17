@@ -30,7 +30,12 @@ It is a simple and secure way to authenticate users without the need for usernam
 
 ## Running a local test server
 
+mkcert is required to generate the dev-certs
+
 ```
+$ cd tls
+$ ./gen.sh # mkcert
+$ cd ..
 $ docker compose up -d --build
 $ docker exec -ti uyulala uyulala create key
 $ docker exec -ti uyulala uyulala create app --demo demo

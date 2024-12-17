@@ -23,5 +23,6 @@ jobs:
       with:
         context: .
         platforms: linux/amd64,linux/arm64
+        dockerfile: docker/Dockerfile
         push: true
         tags: ghcr.io/daedaluz/uyulala:latest

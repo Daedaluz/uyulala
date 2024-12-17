@@ -1,5 +1,5 @@
 # Issuer
-issuer: http://localhost
+issuer: "http://localhost"
 
 # HTTP settings
 http:
@@ -16,7 +16,7 @@ http:
 # Database settings
 database:
   # The database connection DSN
-  dsn: "root:root@tcp(127.0.0.1:3306)/uyulala?charset=utf8mb4&parseTime=True&multiStatements=true"
+  dsn: "root:root@tcp(mariadb:3306)/uyulala?charset=utf8mb4&parseTime=True&multiStatements=true"
 
 # webauthn settings
 webauthn:
@@ -26,15 +26,18 @@ webauthn:
   display_name: uyulala
   # The origins of the Relying Party
   origins:
-    - http://localhost:8080
+  - http://localhost:8080
+  - http://localhost
+  - https://localhost:8080
+  - https://localhost
   # The attestation mode
   attestation: direct
   # MDS3 Metadata url
   mds3: https://mds.fidoalliance.org
+  attachment: ""
 
 ciba:
   qrTemplate: "http://localhost:8080/?challenge={.challegeID}"
-
 
 # userApi settings
 userApi:
@@ -63,3 +66,8 @@ accessToken:
   extension:
     scope:
       - authorization
+
+tls:
+  enable: false
+  cert: "/tls/server.crt"
+  key: "/tls/server.key"

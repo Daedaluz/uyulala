@@ -67,7 +67,6 @@ accessToken:
     scope:
       - authorization
 
-
 tls:
   enable: true
   cert: "/tls/server.crt"

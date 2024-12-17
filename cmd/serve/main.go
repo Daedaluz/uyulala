@@ -71,15 +71,6 @@ func versionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-//func populateMDS() {
-//	slog.Info("Populating fido alliance metadata...")
-//	if err := metadata.PopulateMetadata(viper.GetString("webauthn.mds3")); err != nil {
-//		slog.Error("Failed to populate metadata", "error", err)
-//		os.Exit(1)
-//	}
-//	slog.Info("Populated!")
-//}
-
 func prepareDatabase() *sqlx.DB {
 	db, err := gindb.Open("mysql", viper.GetString("database.dsn"))
 	if err != nil {
@@ -114,8 +105,8 @@ func setupGinEngine(db *sqlx.DB) *gin.Engine {
 		staticPath := fmt.Sprintf("%s/index.html", path.Clean(viper.GetString("http.staticPath")))
 		slog.Info("NoRoute", slog.String("path", c.Request.URL.Path))
 		slog.Info("StaticPath", slog.String("path", staticPath))
-		c.Header("Cache-Control", viper.GetString("http.cache_control"))
-		c.Header("Referer-Policy", viper.GetString("http.referer_policy"))
+		c.Header("Cache-Control", viper.GetString("http.cacheControl"))
+		c.Header("Referer-Policy", viper.GetString("http.refererPolicy"))
 		c.File(staticPath)
 	})
 
