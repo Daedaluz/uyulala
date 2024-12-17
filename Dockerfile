@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.23.3 as gobuilder
+FROM golang:1.23.4 AS gobuilder
 ADD . /src/
 WORKDIR /src/
 ARG CGO_ENABLED=0
