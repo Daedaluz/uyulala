@@ -18,7 +18,9 @@ http:
   readHeaderTimeout: 5s
   writeTimeout: 5s
   idleTimeout: 5s
-  maxHeaderBytes: 1048576 # 1MB
+
+  # Maximum header size (1MB)
+  maxHeaderBytes: 1048576
 
 # Database settings
 database:
@@ -42,7 +44,7 @@ webauthn:
 
 challenge:
   # Max time difference for the get challenge token
-  max_time_diff: 5s
+  maxTimeDiff: 5s
 
 # userApi settings
 userApi:

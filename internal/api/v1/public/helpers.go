@@ -60,7 +60,7 @@ func getVerifiedChallenge(ctx *gin.Context, timeSensitive bool) (*challengedb.Da
 		backendDuration := time.Since(challenge.Created)
 		frontendDuration := time.Second * time.Duration(claims.Duration)
 		timeDiff := (backendDuration - frontendDuration).Abs()
-		if timeDiff > viper.GetDuration("challenge.max_time_diff") {
+		if timeDiff > viper.GetDuration("challenge.maxTimeDiff") {
 			api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Token too old", nil)
 			return nil, false
 		}

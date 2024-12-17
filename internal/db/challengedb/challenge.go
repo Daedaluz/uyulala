@@ -23,8 +23,9 @@ const (
 	StatusRejected  = "rejected"
 )
 
-func CreateChallenge(ctx *gin.Context, typ, appID string, expire time.Time,
-	publicData, privateData any, signatureText string, signatureData []byte, redirectURL string) (challengeID string, secret string, err error) {
+func CreateChallenge(ctx *gin.Context, typ, appID string, expire time.Time, publicData, privateData any,
+	signatureText string, signatureData []byte,
+	redirectURL string) (challengeID, secret string, err error) {
 	var pubData, privData []byte
 	var secretToken uuid.UUID
 	secretToken, err = uuid.NewRandom()

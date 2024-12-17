@@ -15,5 +15,5 @@ RUN pnpm run build
 FROM busybox:latest
 COPY --from=gobuilder /uyulala /usr/bin/uyulala
 COPY --from=nodebuilder /src/dist /www
-COPY uyulala.docker.yml /etc/uyulala/uyulala.yml
+COPY /docker/uyulala.yml /etc/uyulala/uyulala.yml
 CMD ["uyulala", "serve"]

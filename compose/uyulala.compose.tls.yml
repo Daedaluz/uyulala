@@ -1,5 +1,5 @@
 # Issuer
-issuer: "http://localhost"
+issuer: "https://localhost"
 
 # HTTP settings
 http:
@@ -9,9 +9,18 @@ http:
   addr: ":8080"
 
   # Referer setting
-  referer_policy: "origin"
+  refererPolicy: "origin"
   # Cache control setting
-  cache_control: "no-cache, no-store, must-revalidate"
+  cacheControl: "no-cache, no-store, must-revalidate"
+
+  # Timeouts
+  readTimeout: 5s
+  readHeaderTimeout: 5s
+  writeTimeout: 5s
+  idleTimeout: 5s
+
+  # Maximum header size (1MB)
+  maxHeaderBytes: 1048576
 
 # Database settings
 database:
@@ -26,18 +35,16 @@ webauthn:
   display_name: uyulala
   # The origins of the Relying Party
   origins:
-  - http://localhost:8080
-  - http://localhost
-  - https://localhost:8080
   - https://localhost
   # The attestation mode
   attestation: direct
-  # MDS3 Metadata url
-  mds3: https://mds.fidoalliance.org
+  # Attachment
+  # platform or cross-platform or empty
   attachment: ""
 
-ciba:
-  qrTemplate: "http://localhost:8080/?challenge={.challegeID}"
+challenge:
+  # Max time difference for the get challenge token
+  maxTimeDiff: 5s
 
 # userApi settings
 userApi:
@@ -68,6 +75,6 @@ accessToken:
       - authorization
 
 tls:
-  enable: true
+  enable: false
   cert: "/tls/server.crt"
   key: "/tls/server.key"
