@@ -39,6 +39,7 @@ accessToken:
       - authorization
 
 tls:
-  enable: false
+  enable: true
+  generate: true
   cert: "tls/server.crt"
   key: "tls/server.key"
