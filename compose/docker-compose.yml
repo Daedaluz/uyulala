@@ -1,27 +1,6 @@
-networks:
-  frontend:
-  backend:
-
 services:
-  proxy:
-    image: traefik:v3.1
-    networks:
-      - frontend
-    ports:
-      - "8080:8080"
-      - "3000:3000"
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.uyulala.address=:8080"
-      - "--entrypoints.grafana.address=:3000"
-      - "--log.level=DEBUG"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
   mariadb:
     image: mariadb:10.4
-    networks:
-      - backend
     ports:
       - "3306:3306"
     environment:
@@ -29,14 +8,8 @@ services:
       MYSQL_DATABASE: uyulala
   uyulala:
     container_name: uyulala
-    networks:
-      - frontend
-      - backend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.uyulala.entrypoints=uyulala"
-      - "traefik.http.routers.uyulala.rule=Host(`localhost`)"
-      - "traefik.http.services.uyulala.loadbalancer.server.port=8080"
+    ports:
+      - "8080:8080"
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
@@ -45,29 +18,27 @@ services:
     volumes:
       - ./uyulala.compose.yml:/etc/uyulala/uyulala.yml
     depends_on:
-      - proxy
       - mariadb
   grafana:
     image: grafana/grafana:11.4.0
-    networks:
-      - frontend
+    ports:
+      - "3000:3000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.entrypoints=grafana"
       - "traefik.http.routers.grafana.service=grafana"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-    depends_on:
-      - proxy
     profiles:
       - use-case
     environment:
       GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "demo"
       GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "demo"
-      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://localhost/authorize"
-      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "http://uyulala:8080/api/v1/collect"
-      GF_AUTH_GENERIC_OAUTH_API_URL: "http://uyulala:8080/api/v1/oidc/userinfo"
+      GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: "true"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://localhost:8080/authorize"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://uyulala:8080/api/v1/collect"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "https://uyulala:8080/api/v1/oidc/userinfo"
       GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
-      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid"
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid offline_access"
       GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: "InHeader"
       GF_AUTH_GENERIC_OAUTH_NAME: "Uyulala"
       GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN: "true"

@@ -21,36 +21,39 @@ It is a simple and secure way to authenticate users without the need for usernam
 - [ ] Actually create challenges that are hash-related to the sing-data, allowing "Document signing"
 - [ ] Better error handling, logging and documentation
 - [ ] Nicer Web UI
-- [ ] Replace the websocket-based remote-signer with some webrtc-based solution (eliminate load-balancer issue with multiple instances)?
+- [ ] Replace the websocket-based remote-signer with some webrtc-based solution (eliminate load-balancer issue with
+  multiple instances)?
 - [ ] Consider adding fictional email to ID Tokens based on user-id eg `ABCDEFG@uyulala.local`
-- [ ] Look over any potential useless / missing data with the response from the collect api; it should contain everything to validate the signature
+- [ ] Look over any potential useless / missing data with the response from the collect api; it should contain
+  everything to validate the signature
 - [ ] Should admin apps be able to create users with arbitrary user-ids? (easier to integrate with other solutions?)
-- [ ] Make up some configuration / rule system for accepting new keys (eg only allow keys with a certain certification level)
+- [ ] Make up some configuration / rule system for accepting new keys (eg only allow keys with a certain certification
+  level)
 - [ ] ....
 
 ## Running a local test server
 
-mkcert is required to generate the dev-certs
-
-```
-$ cd tls
-$ ./gen.sh # mkcert
-$ cd ..
-$ docker compose up -d --build
-$ docker exec -ti uyulala uyulala create key
-$ docker exec -ti uyulala uyulala create app --demo demo
+```bash
+./scripts/docker-compose.sh up
 ```
 
-Point a browser at `https://localhost/demo`
+To remove:
+
+```bash 
+./scripts/docker-compose.sh down
+```
+
+Point a browser at `https://localhost:8080/demo`
 
 ## Test use case
 
 1) Protect a grafana instance with uyulala via custom oauth2 settings.
+    ```bash
+    PROFILE=use-case ./scripts/docker-compose.sh up
     ```
-    $ docker compose -f docker-compose.usecase.yml up -d --build
-    $ # wait a little for uyulala to install the database and run migrations (and load metadata)
-    $ docker exec -ti uyulala uyulala create key
-    $ docker exec -ti uyulala uyulala create app --demo demo
+   To remove:
+    ```bash
+    PROFILE=use-case ./scripts/docker-compose.sh down
     ```
 2) Create a user with a registered key by going to `http://localhost/demo`
 3) point browser to `http://localhost:3000/`
@@ -62,27 +65,28 @@ Point a browser at `https://localhost/demo`
 
 ```mermaid
 sequenceDiagram
-  ClientFrontend->>ClientServer: Login
-  ClientServer->>Uyulala: /api/v1/sign
-  Uyulala->>ClientServer: {"challengeId":"xxx"}
-  ClientServer->>ClientFrontend: Present Link / Qr
-  ClientServer-->>Uyulala: /api/v1/collect
-  Note over ClientServer,Uyulala: Repeat till success or rejected/expired
-  User->>Uyulala:  Signs / Reject
-  ClientServer->>Uyulala: /api/v1/collect
-  Uyulala->>ClientServer: {"status": "success", ...}
-  ClientServer->>ClientFrontend: User Loged in
+    ClientFrontend ->> ClientServer: Login
+    ClientServer ->> Uyulala: /api/v1/sign
+    Uyulala ->> ClientServer: {"challengeId":"xxx"}
+    ClientServer ->> ClientFrontend: Present Link / Qr
+    ClientServer -->> Uyulala: /api/v1/collect
+    Note over ClientServer, Uyulala: Repeat till success or rejected/expired
+    User ->> Uyulala: Signs / Reject
+    ClientServer ->> Uyulala: /api/v1/collect
+    Uyulala ->> ClientServer: {"status": "success", ...}
+    ClientServer ->> ClientFrontend: User Loged in
 ```
-
 
 ## API
 
 The API is split into four parts;
 
 * Client API - Used by applications, protected by client id and client secret (create signature /collect challenges etc)
-* Service API - Used by applications with administrative flag set, protected by client id and client secret. Can create users and register new keys to users.
+* Service API - Used by applications with administrative flag set, protected by client id and client secret. Can create
+  users and register new keys to users.
 * User API [wip] - Used by the user, protected by some JWT issuer. User self-service for managing keys.
-* Public API - Used by the web ui and has no authentication (Sign a challenge / get challenge or create an oauth2 challenge)
+* Public API - Used by the web ui and has no authentication (Sign a challenge / get challenge or create an oauth2
+  challenge)
 
 ---
 
@@ -106,7 +110,8 @@ client should poll this endpoint until it either expires or the user signs the c
 This endpoint also doubles as the OAuth2 token endpoint if the `Content-Type` header
 is `application/x-www-form-urlencoded`.
 
-Using OAuth2, the code is generated when the user has signed the challenge and the challenge is started with an oauth2 flow.
+Using OAuth2, the code is generated when the user has signed the challenge and the challenge is started with an oauth2
+flow.
 
 * `challengeId` - The challenge id to collect
 
@@ -171,6 +176,7 @@ Example rejected result:
 ```
 
 Example collected result
+
 ```json
 {
   "msg": "Challenge has already been collected",
@@ -179,13 +185,13 @@ Example collected result
 ```
 
 Example expired result:
+
 ```json
 {
   "msg": "Challenge has expired",
   "status": "expired"
 }
 ```
-
 
 ---
 POST `/api/v1/sign`
@@ -389,7 +395,6 @@ example response payload:
   "redirect": "http://localhost:8080/demo?challengeId=12ca6a2e-f783-4545-92f2-4d80cb74de45"
 }
 ```
-
 
 ---
 
