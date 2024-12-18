@@ -1,9 +1,17 @@
 package serve
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/big"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -71,15 +79,6 @@ func versionHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-//func populateMDS() {
-//	slog.Info("Populating fido alliance metadata...")
-//	if err := metadata.PopulateMetadata(viper.GetString("webauthn.mds3")); err != nil {
-//		slog.Error("Failed to populate metadata", "error", err)
-//		os.Exit(1)
-//	}
-//	slog.Info("Populated!")
-//}
-
 func prepareDatabase() *sqlx.DB {
 	db, err := gindb.Open("mysql", viper.GetString("database.dsn"))
 	if err != nil {
@@ -114,8 +113,8 @@ func setupGinEngine(db *sqlx.DB) *gin.Engine {
 		staticPath := fmt.Sprintf("%s/index.html", path.Clean(viper.GetString("http.staticPath")))
 		slog.Info("NoRoute", slog.String("path", c.Request.URL.Path))
 		slog.Info("StaticPath", slog.String("path", staticPath))
-		c.Header("Cache-Control", viper.GetString("http.cache_control"))
-		c.Header("Referer-Policy", viper.GetString("http.referer_policy"))
+		c.Header("Cache-Control", viper.GetString("http.cacheControl"))
+		c.Header("Referer-Policy", viper.GetString("http.refererPolicy"))
 		c.File(staticPath)
 	})
 
@@ -169,7 +168,13 @@ func Main(cmd *cobra.Command, args []string) {
 	slog.Info("Starting server")
 	go func() {
 		if viper.GetBool("tls.enable") {
-			if err := server.ListenAndServeTLS(viper.GetString("tls.cert"), viper.GetString("tls.key")); err != nil {
+			loadCerts(server)
+			ln, err := net.Listen("tcp", viper.GetString("http.addr"))
+			if err != nil {
+				slog.Error("Couldn't start server", "error", err)
+				return
+			}
+			if err := server.ServeTLS(ln, "", ""); err != nil {
 				slog.Error("TLS server returned error", "error", err)
 			} else {
 				slog.Info("Byte TLS.")
@@ -192,4 +197,75 @@ func Main(cmd *cobra.Command, args []string) {
 	} else {
 		slog.Info("Server shutdown")
 	}
+}
+
+func loadCerts(server *http.Server) {
+	var cert tls.Certificate
+	var err error
+	if viper.GetBool("tls.generate") {
+		cert, err = generateCerts()
+		if err != nil {
+			slog.Error("Couldn't generate certs", "error", err)
+			os.Exit(1)
+		}
+		server.TLSConfig = &tls.Config{
+			MinVersion:   tls.VersionTLS12,
+			Certificates: []tls.Certificate{cert},
+		}
+	} else {
+		cert, err = tls.LoadX509KeyPair(viper.GetString("tls.cert"), viper.GetString("tls.key"))
+		if err != nil {
+			slog.Error("Couldn't load certs", "error", err)
+			os.Exit(1)
+		}
+	}
+
+}
+
+func generateCerts() (tls.Certificate, error) {
+	key, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			CommonName:         "TestCertificate",
+			Organization:       []string{"Uyulala"},
+			Country:            []string{"SE"},
+			OrganizationalUnit: []string{"IDP"},
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().AddDate(1, 0, 0),
+		KeyUsage:  x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		ExtKeyUsage: []x509.ExtKeyUsage{
+			x509.ExtKeyUsageServerAuth,
+		},
+		BasicConstraintsValid: true,
+		DNSNames:              viper.GetStringSlice("webauthn.origins"),
+		IsCA:                  true,
+	}
+	ipAddresses, err := net.InterfaceAddrs()
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+	for _, addr := range ipAddresses {
+		ip, _, err := net.ParseCIDR(addr.String())
+		if err != nil {
+			return tls.Certificate{}, err
+		}
+		template.IPAddresses = append(template.IPAddresses, ip)
+	}
+	crt, err := x509.CreateCertificate(rand.Reader, &template, &template, &key.PublicKey, key)
+	if err != nil {
+		return tls.Certificate{}, err
+	}
+	return tls.Certificate{
+		Certificate: [][]byte{crt},
+		PrivateKey:  key,
+	}, nil
 }

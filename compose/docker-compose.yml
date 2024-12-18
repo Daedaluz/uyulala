@@ -1,0 +1,49 @@
+services:
+  mariadb:
+    image: mariadb:10.4
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: uyulala
+  uyulala:
+    container_name: uyulala
+    ports:
+      - "8080:8080"
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+      tags:
+        - uyulala
+    volumes:
+      - ./uyulala.compose.yml:/etc/uyulala/uyulala.yml
+    depends_on:
+      - mariadb
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3000:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.entrypoints=grafana"
+      - "traefik.http.routers.grafana.service=grafana"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    profiles:
+      - use-case
+    environment:
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "demo"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "demo"
+      GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: "true"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://localhost:8080/authorize"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://uyulala:8080/api/v1/collect"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "https://uyulala:8080/api/v1/oidc/userinfo"
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid offline_access"
+      GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: "InHeader"
+      GF_AUTH_GENERIC_OAUTH_NAME: "Uyulala"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN: "true"
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "'Admin'"
+      GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "true"
+      GF_AUTH_SIGNOUT_REDIRECT_URL: "https://localhost/demo"
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"

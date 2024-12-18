@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-docker compose -f docker-compose.dev.yml up -d
+docker compose -f compose/docker-compose.dev.yml up -d
 goland . &
 webstorm ./frontend &
 
