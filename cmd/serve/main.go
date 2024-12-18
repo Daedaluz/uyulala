@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path"
@@ -246,9 +247,17 @@ func generateCerts() (tls.Certificate, error) {
 			x509.ExtKeyUsageServerAuth,
 		},
 		BasicConstraintsValid: true,
-		DNSNames:              viper.GetStringSlice("webauthn.origins"),
 		IsCA:                  true,
 	}
+
+	for _, domain := range viper.GetStringSlice("webauthn.origins") {
+		x, err := url.Parse(domain)
+		if err != nil {
+			continue
+		}
+		template.DNSNames = append(template.DNSNames, x.Hostname())
+	}
+
 	ipAddresses, err := net.InterfaceAddrs()
 	if err != nil {
 		return tls.Certificate{}, err
