@@ -16,18 +16,13 @@ services:
       tags:
         - uyulala
     volumes:
-      - ./uyulala.compose.yml:/etc/uyulala/uyulala.yml
+      - ./uyulala.yml:/etc/uyulala/uyulala.yml
     depends_on:
       - mariadb
   grafana:
     image: grafana/grafana:11.4.0
     ports:
       - "3000:3000"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.grafana.entrypoints=grafana"
-      - "traefik.http.routers.grafana.service=grafana"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     profiles:
       - use-case
     environment:
