@@ -46,8 +46,8 @@ func logger(logger *slog.Logger) gin.HandlerFunc {
 		clientIP := c.ClientIP()
 		method := c.Request.Method
 		statusCode := c.Writer.Status()
-		path := c.Request.URL.Path
-		logger.Info("Request", slog.String("path", path),
+		urlPath := c.Request.URL.Path
+		logger.Info("Request", slog.String("path", urlPath),
 			slog.String("method", method),
 			slog.String("clientIP", clientIP),
 			slog.Int("statusCode", statusCode),
@@ -219,8 +219,11 @@ func loadCerts(server *http.Server) {
 			slog.Error("Couldn't load certs", "error", err)
 			os.Exit(1)
 		}
+		server.TLSConfig = &tls.Config{
+			MinVersion:   tls.VersionTLS12,
+			Certificates: []tls.Certificate{cert},
+		}
 	}
-
 }
 
 func generateCerts() (tls.Certificate, error) {

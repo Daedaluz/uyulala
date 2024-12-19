@@ -15,11 +15,11 @@ import (
 )
 
 type CreateKeyRequest struct {
-	ctx           *gin.Context `json:"-"`
-	SuggestedName string       `json:"suggestedName"`
-	ID            string       `json:"userId"`
-	Timeout       uint64       `json:"timeout"`
-	Redirect      string       `json:"redirect"`
+	ctx           *gin.Context
+	SuggestedName string `json:"suggestedName"`
+	ID            string `json:"userId"`
+	Timeout       int64  `json:"timeout"`
+	Redirect      string `json:"redirect"`
 }
 
 func (c *CreateKeyRequest) WebAuthnID() []byte {
@@ -75,7 +75,7 @@ func createKeyHandler(ctx *gin.Context) {
 		}
 	}
 
-	expires := time.Now().Add(time.Duration(req.Timeout) * time.Second)
+	expires := time.Now().Add(time.Duration(req.Timeout).Abs() * time.Second)
 	app := application.GetCurrentApplication(ctx)
 	challengeID, secret, err := challengedb.CreateChallenge(ctx, "webauthn.create", app.ID, expires, credential, sessionData, "", []byte{}, req.Redirect)
 	if err != nil {

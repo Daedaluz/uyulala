@@ -21,12 +21,12 @@ import (
 )
 
 type CreateBIDChallengeRequest struct {
-	ctx              *gin.Context                         `json:"-"`
+	ctx              *gin.Context
 	UserID           string                               `json:"userId"`
 	UserVerification protocol.UserVerificationRequirement `json:"userVerification"`
 	Text             string                               `json:"text"`
 	Data             []byte                               `json:"data"`
-	Timeout          uint64                               `json:"timeout"`
+	Timeout          int64                                `json:"timeout"`
 	Redirect         string                               `json:"redirect"`
 }
 
@@ -37,8 +37,8 @@ type CreateCIBAChallengeRequest struct {
 
 type CIBAAuthenticationResponse struct {
 	RequestID string `json:"auth_req_id"`
-	ExpiresIn uint64 `json:"expires_in"`
-	Interval  uint64 `json:"interval,omitempty"`
+	ExpiresIn int64  `json:"expires_in"`
+	Interval  int64  `json:"interval,omitempty"`
 	QRData    string `json:"qr_data,omitempty"`   // CIBA Extension
 	QRSecret  string `json:"qr_secret,omitempty"` // CIBA Extension
 }
@@ -141,7 +141,7 @@ func createBIDChallenge(ctx *gin.Context) {
 		return
 	}
 	challenge, secret, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
-		time.Now().Add(time.Duration(req.Timeout)*time.Second), login, sessionData, req.Text, req.Data, req.Redirect)
+		time.Now().Add(time.Duration(req.Timeout).Abs()*time.Second), login, sessionData, req.Text, req.Data, req.Redirect)
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
@@ -254,9 +254,9 @@ func createCIBAChallenge(ctx *gin.Context) {
 		return
 	}
 
-	timeout := uint64(5 * 60)
+	timeout := int64(5 * 60)
 	if requestedExpiry != "" {
-		i, err := strconv.ParseUint(requestedExpiry, 0, 64)
+		i, err := strconv.ParseInt(requestedExpiry, 0, 64)
 		if err != nil {
 			api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Error parsing requested_expiry", err)
 			return
@@ -270,7 +270,7 @@ func createCIBAChallenge(ctx *gin.Context) {
 	}
 
 	challenge, secret, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
-		time.Now().Add(time.Duration(timeout)*time.Second), login, sessionData, bindingMessage, nil, "")
+		time.Now().Add(time.Duration(timeout).Abs()*time.Second), login, sessionData, bindingMessage, nil, "")
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return

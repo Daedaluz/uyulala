@@ -1,4 +1,4 @@
-package wait_db
+package waitdb
 
 import (
 	"log/slog"

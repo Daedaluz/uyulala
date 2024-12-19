@@ -15,11 +15,11 @@ import (
 )
 
 type CreateKeyRequest struct {
-	ctx           *gin.Context `json:"-"`
-	SuggestedName string       `json:"suggestedName"`
-	ID            string       `json:"-"`
-	Timeout       uint64       `json:"timeout"`
-	Redirect      string       `json:"-"`
+	ctx           *gin.Context
+	SuggestedName string `json:"suggestedName"`
+	ID            string `json:"-"`
+	Timeout       int64  `json:"timeout"`
+	Redirect      string `json:"-"`
 }
 
 func (c *CreateKeyRequest) WebAuthnID() []byte {
@@ -54,7 +54,7 @@ func addKey(c *gin.Context) {
 	req := &CreateKeyRequest{
 		ctx:      c,
 		ID:       subj,
-		Timeout:  uint64((time.Minute * 5).Seconds()),
+		Timeout:  int64((time.Minute * 5).Seconds()),
 		Redirect: c.GetHeader("referer"),
 	}
 	if err := c.BindJSON(req); err != nil {
@@ -75,7 +75,7 @@ func addKey(c *gin.Context) {
 		return
 	}
 
-	expires := time.Now().Add(time.Duration(req.Timeout) * time.Second)
+	expires := time.Now().Add(time.Duration(req.Timeout).Abs() * time.Second)
 	challengeID, secret, err := challengedb.CreateChallenge(c, "webauthn.create", "", expires, credential, sessionData, "", []byte{}, req.Redirect)
 	if err != nil {
 		api.AbortError(c, http.StatusInternalServerError, "internal_error", "Unexpected error", err)

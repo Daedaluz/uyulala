@@ -20,7 +20,7 @@ func StatusResponse(ctx *gin.Context, code int, status, msg string) {
 	})
 }
 
-func OAuth2ErrorResponse(ctx *gin.Context, code int, err string, desc string) {
+func OAuth2ErrorResponse(ctx *gin.Context, code int, err, desc string) {
 	ctx.AbortWithStatusJSON(code, gin.H{
 		"error":             err,
 		"error_description": desc,

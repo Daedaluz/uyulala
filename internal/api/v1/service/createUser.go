@@ -15,11 +15,11 @@ import (
 )
 
 type CreateUserRequest struct {
-	ctx *gin.Context `json:"-"`
+	ctx *gin.Context
 	// SuggestedName is the suggested username for the user.
 	SuggestedName string `json:"suggestedName"`
 	ID            []byte `json:"-"`
-	Timeout       uint64 `json:"timeout"`
+	Timeout       int64  `json:"timeout"`
 	Redirect      string `json:"redirect"`
 }
 
@@ -81,9 +81,12 @@ func createUserHandler(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	expires := time.Now().Add(time.Duration(userRegistration.Timeout) * time.Second)
+	expires := time.Now().Add(time.Duration(userRegistration.Timeout).Abs() * time.Second)
 	app := application.GetCurrentApplication(ctx)
-	challengeID, secret, err := challengedb.CreateChallenge(ctx, "webauthn.create", app.ID, expires, credential, sessionData, "", []byte{}, userRegistration.Redirect)
+	challengeID, secret, err := challengedb.CreateChallenge(ctx, "webauthn.create",
+		app.ID, expires, credential, sessionData,
+		"", []byte{},
+		userRegistration.Redirect)
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return

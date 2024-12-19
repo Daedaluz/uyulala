@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"slices"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 // https://openid.net/specs/openid-connect-discovery-1_0.html
@@ -25,7 +27,7 @@ const (
 	TokenAuthClientSecretBasic = "client_secret_basic"
 	TokenAuthClientSecretPost  = "client_secret_post"
 	TokenAuthClientSecretJWT   = "client_secret_jwt"
-	TokenAuthPrivateKeyJWT     = "private_key_jwt"
+	TokenAuthPrivateKeyJWT     = "private_key_jwt" //nolint:gosec
 )
 
 const (
@@ -46,14 +48,14 @@ const (
 
 	ACRPresenceInternal    = "urn:fido2:presence_internal"
 	ACRFingerPrintInternal = "urn:fido2:fingerprint_internal"
-	ACRPasscodeInternal    = "urn:fido2:passcode_internal"
+	ACRPasscodeInternal    = "urn:fido2:passcode_internal" //nolint:gosec
 	ACRVoiceprintInternal  = "urn:fido2:voiceprint_internal"
 	ACRFaceprintInternal   = "urn:fido2:faceprint_internal"
 	ACRLocationInternal    = "urn:fido2:location_internal"
 	ACREyeprintInternal    = "urn:fido2:eyeprint_internal"
 	ACRPatternInternal     = "urn:fido2:pattern_internal"
 	ACRHandprintInternal   = "urn:fido2:handprint_internal"
-	ACRPasscodeExternal    = "urn:fido2:passcode_external"
+	ACRPasscodeExternal    = "urn:fido2:passcode_external" //nolint:gosec
 	ACRPatternExternal     = "urn:fido2:pattern_external"
 )
 
@@ -449,11 +451,18 @@ func Fetch(url string) (*Full, error) {
 		},
 		Timeout: time.Second * 10,
 	}
-	resp, err := cli.Get(url)
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	req = req.WithContext(context.Background())
+	resp, err := cli.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	dec := json.NewDecoder(resp.Body)
 	res := &Full{}
 	err = dec.Decode(res)

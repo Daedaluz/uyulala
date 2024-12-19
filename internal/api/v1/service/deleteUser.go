@@ -1,10 +1,11 @@
 package service
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"uyulala/internal/api"
 	"uyulala/internal/db/userdb"
+
+	"github.com/gin-gonic/gin"
 )
 
 type deleteUserHandlerRequest struct {

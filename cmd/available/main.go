@@ -9,24 +9,33 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 func doCheck(host string) (map[string]any, error) {
 	client := http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec
 		},
 		Timeout: time.Second,
 	}
-	res, err := client.Get(fmt.Sprintf("%s/api/version", host))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/version", host), http.NoBody)
 	if err != nil {
 		return nil, err
 	}
-	var resJson = map[string]any{}
-	if err := json.NewDecoder(res.Body).Decode(&resJson); err != nil {
+	req = req.WithContext(context.Background())
+	res, err := client.Do(req)
+	if err != nil {
 		return nil, err
 	}
-	return resJson, nil
+	defer func() {
+		_ = res.Body.Close()
+	}()
+	var resJSON = map[string]any{}
+	if err := json.NewDecoder(res.Body).Decode(&resJSON); err != nil {
+		return nil, err
+	}
+	return resJSON, nil
 }
 
 func Main(cmd *cobra.Command, args []string) {
