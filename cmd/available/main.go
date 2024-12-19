@@ -48,10 +48,13 @@ func Main(cmd *cobra.Command, args []string) {
 	if !doWait {
 		res, err := doCheck(host)
 		if err != nil {
-			fmt.Println("Server not available")
+			fmt.Println("Server", host, "is not available")
 			os.Exit(1)
 		}
-		fmt.Println(res)
+		fmt.Println("Server", host, "is available")
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		_ = enc.Encode(res)
 		os.Exit(1)
 	}
 
