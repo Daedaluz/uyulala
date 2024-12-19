@@ -128,7 +128,7 @@ func authOAuthRefresh(ctx *gin.Context, app *appdb.Application) {
 func ClientMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		username, password, ok := ctx.Request.BasicAuth()
-		if ctx.Request.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
+		if ctx.ContentType() == "application/x-www-form-urlencoded" {
 			if !ok {
 				username = ctx.PostForm("client_id")
 				password = ctx.PostForm("client_secret")

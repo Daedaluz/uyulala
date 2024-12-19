@@ -72,24 +72,24 @@ export class publicApi {
         })
     }
 
-    sign(id: string, data: Credential) {
+    sign(token: string, data: Credential) {
         const body = authnEncode(data)
         return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge`, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             method: "PUT",
-            body: new URLSearchParams([["token", id], ["response", JSON.stringify(body)]]).toString(),
+            body: new URLSearchParams([["token", token], ["response", JSON.stringify(body)]]).toString(),
         });
     }
 
-    reject(challenge: string) {
+    reject(token: string) {
         return fetchJSON<RedirectResponse>(`${this.url}/api/v1/challenge`, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             method: "DELETE",
-            body: new URLSearchParams([["token", challenge]]).toString()
+            body: new URLSearchParams([["token", token]]).toString()
         });
     }
 
