@@ -15,10 +15,10 @@ It is a simple and secure way to authenticate users without the need for usernam
 - [x] Bank-ID similar api
 - [x] Consider move the front-end to its own repo (update: It will stay in-repo for simplicity)
 - [x] Create a suitable Cross-Origin policy
+- [x] Actually create challenges that are hash-related to the sing-data, allowing "Document signing" (only BankID flow)
 
 ## Future plans
 
-- [ ] Actually create challenges that are hash-related to the sing-data, allowing "Document signing"
 - [ ] Better error handling, logging and documentation
 - [ ] Nicer Web UI
 - [ ] Replace the websocket-based remote-signer with some webrtc-based solution (eliminate load-balancer issue with
@@ -76,6 +76,12 @@ sequenceDiagram
     Uyulala ->> ClientServer: {"status": "success", ...}
     ClientServer ->> ClientFrontend: User Loged in
 ```
+
+## Challenge hash calculation
+
+When challenges are created with a `text` prompt, the webauthn challenge is calculated as follows:
+
+SHA256(UserID + '\n' + ChallengeID '\n' + nonce + '\n' + Text + '\n' + Data)
 
 ## API
 

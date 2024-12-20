@@ -23,32 +23,48 @@ const (
 	StatusRejected  = "rejected"
 )
 
-func CreateChallenge(ctx *gin.Context, typ, appID string, expire time.Time, publicData, privateData any,
-	signatureText string, signatureData []byte,
-	redirectURL string) (challengeID, secret string, err error) {
+type CreateChallengeData struct {
+	Type          string
+	AppID         string
+	Expire        time.Time
+	PublicData    any
+	PrivateData   any
+	Nonce         string
+	SignatureText string
+	SignatureData []byte
+	RedirectURL   string
+}
+
+func CreateChallenge2(ctx *gin.Context, data *CreateChallengeData, id string) (challengeID, secret string, err error) {
 	var pubData, privData []byte
 	var secretToken uuid.UUID
 	secretToken, err = uuid.NewRandom()
 
+	if id == "" {
+		id = db.GenerateID(8)
+	}
+
 	if err != nil {
 		return "", "", err
 	}
-	if pubData, err = db.GobEncodeData(publicData); err != nil {
+	if pubData, err = db.GobEncodeData(data.PublicData); err != nil {
 		return "", "", err
 	}
-	if privData, err = db.GobEncodeData(privateData); err != nil {
+	if privData, err = db.GobEncodeData(data.PrivateData); err != nil {
 		return "", "", err
 	}
 
 	tx := gindb.GetTX(ctx)
-	res, err := tx.Queryx(`call create_challenge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, db.GenerateID(8), typ, appID, expire,
+	res, err := tx.Queryx(`call create_challenge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, id, data.Type, data.AppID, data.Expire,
 		pubData, privData,
-		signatureText, signatureData,
-		redirectURL, secretToken)
+		data.SignatureText, data.SignatureData, data.Nonce,
+		data.RedirectURL, secretToken)
 	if err != nil {
 		return "", "", err
 	}
-	defer res.Close()
+	defer func() {
+		_ = res.Close()
+	}()
 	if !res.Next() {
 		return "", "", sql.ErrNoRows
 	}
@@ -68,6 +84,7 @@ type Data struct {
 
 	SignatureText string `db:"signature_text"`
 	SignatureData []byte `db:"signature_data"`
+	Nonce         string `db:"nonce"`
 
 	Signature  []byte       `db:"signature"`
 	Credential []byte       `db:"credential"`

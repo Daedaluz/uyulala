@@ -101,7 +101,7 @@ END;
 
 CREATE OR REPLACE PROCEDURE ping_user_key(IN hash VARCHAR(64), IN credential BLOB)
 BEGIN
-    UPDATE user_keys SET last_used = current_timestamp(), credential = credential WHERE user_keys.hash = hash;
+    UPDATE user_keys u SET last_used = current_timestamp(), u.credential = credential WHERE u.hash = hash;
 END;
 
 CREATE OR REPLACE PROCEDURE get_key(IN hash VARCHAR(64))
@@ -141,8 +141,8 @@ END;
 CREATE OR REPLACE PROCEDURE get_server_key_with_alg(IN alg ENUM ('ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512'))
 BEGIN
     SELECT kid, type, alg, created, private_key, public_key
-    FROM server_keys
-    WHERE alg = alg
+    FROM server_keys s
+    WHERE s.alg = alg
     ORDER BY created DESC
     LIMIT 1;
 END;
@@ -241,7 +241,7 @@ END;
 
 CREATE OR REPLACE PROCEDURE get_user_auth_time(IN user_id VARCHAR(36), IN app_id VARCHAR(36))
 BEGIN
-    SELECT last_auth FROM application_user_meta WHERE user_id = user_id AND app_id = app_id;
+    SELECT last_auth FROM application_user_meta a WHERE a.user_id = user_id AND a.app_id = app_id;
 END;
 
 
@@ -259,6 +259,7 @@ CREATE OR REPLACE TABLE challenges
 
     signature_text TEXT                                                         NOT NULL COLLATE utf8mb4_unicode_ci,
     signature_data BLOB,
+    nonce          VARCHAR(16)                                                  NOT NULL COLLATE utf8mb4_unicode_ci,
 
     signature      BLOB,
     credential     BLOB,
@@ -301,6 +302,7 @@ BEGIN
            private_data,
            signature_text,
            signature_data,
+           nonce,
            signature,
            credential,
            signed,
@@ -314,7 +316,7 @@ END;
 
 CREATE OR REPLACE PROCEDURE delete_ciba_request(IN request_id VARCHAR(36))
 BEGIN
-    DELETE FROM challenge_ciba_request_ids WHERE request_id = request_id;
+    DELETE FROM challenge_ciba_request_ids WHERE challenge_ciba_request_ids.request_id = request_id;
 END;
 
 CREATE OR REPLACE PROCEDURE create_code(IN code VARCHAR(36), IN challenge_id VARCHAR(36))
@@ -333,6 +335,7 @@ BEGIN
            private_data,
            signature_text,
            signature_data,
+           nonce,
            signature,
            credential,
            signed,
@@ -340,14 +343,14 @@ BEGIN
            oauth2_context,
            status,
            secret
-    FROM challenge_codes c
-             RIGHT JOIN challenges c2 on c.challenge_id = c2.id
+    FROM challenge_codes AS c
+             RIGHT JOIN challenges AS c2 on c.challenge_id = c2.id
     WHERE c.code = code;
 END;
 
 CREATE OR REPLACE PROCEDURE delete_code(IN code VARCHAR(36))
 BEGIN
-    DELETE FROM challenge_codes WHERE code = code;
+    DELETE FROM challenge_codes WHERE challenge_codes.code = code;
 END;
 
 CREATE OR REPLACE PROCEDURE create_challenge(IN challenge_id VARCHAR(36), IN type VARCHAR(36), IN app_id VARCHAR(36),
@@ -356,11 +359,12 @@ CREATE OR REPLACE PROCEDURE create_challenge(IN challenge_id VARCHAR(36), IN typ
                                              IN private_data BLOB,
                                              IN signature_text TEXT COLLATE utf8mb4_unicode_ci,
                                              IN signature_data BLOB,
+                                             IN nonce VARCHAR(16) COLLATE utf8mb4_unicode_ci,
                                              IN redirect_url VARCHAR(250), secret VARCHAR(36))
 BEGIN
-    INSERT INTO challenges(id, type, app_id, expire, public_data, private_data, signature_text, signature_data,
+    INSERT INTO challenges(id, type, app_id, expire, public_data, private_data, signature_text, signature_data, nonce,
                            redirect_url, secret)
-    VALUES (challenge_id, type, app_id, expire, public_data, private_data, signature_text, signature_data,
+    VALUES (challenge_id, type, app_id, expire, public_data, private_data, signature_text, signature_data, nonce,
             redirect_url, secret);
     SELECT challenge_id;
 END;
@@ -368,12 +372,12 @@ END;
 CREATE OR REPLACE PROCEDURE set_challenge_status(IN challenge_id VARCHAR(36),
                                                  IN status ENUM ('pending', 'viewed', 'signed', 'collected', 'rejected'))
 BEGIN
-    UPDATE challenges SET status = status WHERE id = challenge_id;
+    UPDATE challenges AS c SET c.status = status WHERE c.id = challenge_id;
 END;
 
 CREATE OR REPLACE PROCEDURE set_oauth2_context(IN challenge_id VARCHAR(36), IN oauth2_context VARCHAR(1024))
 BEGIN
-    UPDATE challenges SET challenges.oauth2_context = oauth2_context WHERE id = challenge_id;
+    UPDATE challenges AS c SET c.oauth2_context = oauth2_context WHERE c.id = challenge_id;
 END;
 
 CREATE OR REPLACE PROCEDURE get_challenge(IN challenge_id VARCHAR(36))
@@ -387,6 +391,7 @@ BEGIN
            private_data,
            signature_text,
            signature_data,
+           nonce,
            signature,
            credential,
            signed,
@@ -438,32 +443,34 @@ CREATE OR REPLACE PROCEDURE get_session(IN session_id VARCHAR(18))
 BEGIN
     SELECT id, user_id, app_id, requested_scopes, counter, created_at, expire_at
     FROM sessions
-    WHERE id = session_id
-      AND (expire_at > current_timestamp() OR expire_at IS NULL);
+    WHERE sessions.id = session_id
+      AND (sessions.expire_at > current_timestamp() OR sessions.expire_at IS NULL);
 END;
 
 CREATE OR REPLACE PROCEDURE delete_session(IN session_id VARCHAR(18))
 BEGIN
-    DELETE FROM sessions WHERE id = session_id;
+    DELETE FROM sessions WHERE sessions.id = session_id;
 END;
 
 CREATE OR REPLACE PROCEDURE rotate_session(IN session_id VARCHAR(18), IN expire DATETIME)
 BEGIN
-    UPDATE sessions SET expire_at = expire, counter = counter + 1 WHERE id = session_id;
+    UPDATE sessions
+    SET sessions.expire_at = expire, sessions.counter = sessions.counter + 1
+    WHERE sessions.id = session_id;
 END;
 
 CREATE OR REPLACE PROCEDURE get_sessions_for_user(IN user_id VARCHAR(36))
 BEGIN
     SELECT id, user_id, app_id, requested_scopes, counter, created_at, expire_at
     FROM sessions
-    WHERE user_id = user_id
-      AND (expire_at > current_timestamp() OR expire_at IS NULL);
+    WHERE sessions.user_id = user_id
+      AND (sessions.expire_at > current_timestamp() OR sessions.expire_at IS NULL);
 END;
 
 CREATE OR REPLACE PROCEDURE list_sessions_for_user(IN user_id VARCHAR(36))
 BEGIN
     SELECT id, user_id, app_id, requested_scopes, counter, created_at, expire_at
     FROM sessions
-    WHERE user_id = user_id
-      AND (expire_at > current_timestamp() OR expire_at IS NULL);
+    WHERE sessions.user_id = user_id
+      AND (sessions.expire_at > current_timestamp() OR sessions.expire_at IS NULL);
 END;

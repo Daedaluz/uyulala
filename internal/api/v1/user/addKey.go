@@ -76,7 +76,17 @@ func addKey(c *gin.Context) {
 	}
 
 	expires := time.Now().Add(time.Duration(req.Timeout).Abs() * time.Second)
-	challengeID, secret, err := challengedb.CreateChallenge(c, "webauthn.create", "", expires, credential, sessionData, "", []byte{}, req.Redirect)
+	challengeID, secret, err := challengedb.CreateChallenge2(c, &challengedb.CreateChallengeData{
+		Type:          "webauthn.create",
+		AppID:         "",
+		Expire:        expires,
+		PublicData:    credential,
+		PrivateData:   sessionData,
+		Nonce:         "",
+		SignatureText: "",
+		SignatureData: []byte{},
+		RedirectURL:   req.Redirect,
+	}, "")
 	if err != nil {
 		api.AbortError(c, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return

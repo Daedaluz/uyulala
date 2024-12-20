@@ -83,10 +83,17 @@ func createUserHandler(ctx *gin.Context) {
 	}
 	expires := time.Now().Add(time.Duration(userRegistration.Timeout).Abs() * time.Second)
 	app := application.GetCurrentApplication(ctx)
-	challengeID, secret, err := challengedb.CreateChallenge(ctx, "webauthn.create",
-		app.ID, expires, credential, sessionData,
-		"", []byte{},
-		userRegistration.Redirect)
+	challengeID, secret, err := challengedb.CreateChallenge2(ctx, &challengedb.CreateChallengeData{
+		Type:          "webauthn.create",
+		AppID:         app.ID,
+		Expire:        expires,
+		PublicData:    credential,
+		PrivateData:   sessionData,
+		Nonce:         "",
+		SignatureText: "",
+		SignatureData: []byte{},
+		RedirectURL:   userRegistration.Redirect,
+	}, "")
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return

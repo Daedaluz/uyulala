@@ -1,6 +1,8 @@
 package client
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"net/http"
 	"slices"
 	"strconv"
@@ -10,6 +12,7 @@ import (
 	"uyulala/internal/api"
 	"uyulala/internal/api/application"
 	"uyulala/internal/authn"
+	"uyulala/internal/db"
 	"uyulala/internal/db/challengedb"
 	"uyulala/internal/db/userdb"
 	"uyulala/openid/discovery"
@@ -126,6 +129,26 @@ func createBIDChallenge(ctx *gin.Context) {
 		opts = append(opts, webauthn.WithAllowedCredentials(keys))
 	}
 
+	var nonce string
+	var hash [32]byte
+	challengeID := db.GenerateID(8)
+	if req.Text != "" {
+		nonce = db.GenerateID(8)
+		buff := bytes.Buffer{}
+		buff.Write([]byte(req.UserID))
+		buff.WriteByte('\n')
+		buff.Write([]byte(challengeID))
+		buff.WriteByte('\n')
+		buff.Write([]byte(nonce))
+		buff.WriteByte('\n')
+		buff.Write([]byte(req.Text))
+		buff.WriteByte('\n')
+		buff.Write(req.Data)
+		hash = sha256.Sum256(buff.Bytes())
+
+		opts = append(opts, webauthn.WithChallenge(hash[:]))
+	}
+
 	cfg := authn.CreateWebauthnConfig()
 
 	var login *protocol.CredentialAssertion
@@ -140,8 +163,17 @@ func createBIDChallenge(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	challenge, secret, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
-		time.Now().Add(time.Duration(req.Timeout).Abs()*time.Second), login, sessionData, req.Text, req.Data, req.Redirect)
+	challenge, secret, err := challengedb.CreateChallenge2(ctx, &challengedb.CreateChallengeData{
+		Type:          "webauthn.get",
+		AppID:         app.ID,
+		Expire:        time.Now().Add(time.Duration(req.Timeout).Abs() * time.Second),
+		PublicData:    login,
+		PrivateData:   sessionData,
+		Nonce:         nonce,
+		SignatureText: req.Text,
+		SignatureData: req.Data,
+		RedirectURL:   req.Redirect,
+	}, challengeID)
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
@@ -268,9 +300,17 @@ func createCIBAChallenge(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid binding_message, must be utf8", nil)
 		return
 	}
-
-	challenge, secret, err := challengedb.CreateChallenge(ctx, "webauthn.get", app.ID,
-		time.Now().Add(time.Duration(timeout).Abs()*time.Second), login, sessionData, bindingMessage, nil, "")
+	challenge, secret, err := challengedb.CreateChallenge2(ctx, &challengedb.CreateChallengeData{
+		Type:          "webauthn.get",
+		AppID:         app.ID,
+		Expire:        time.Now().Add(time.Duration(timeout).Abs() * time.Second),
+		PublicData:    login,
+		PrivateData:   sessionData,
+		Nonce:         "",
+		SignatureText: bindingMessage,
+		SignatureData: nil,
+		RedirectURL:   "",
+	}, "")
 	if err != nil {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return

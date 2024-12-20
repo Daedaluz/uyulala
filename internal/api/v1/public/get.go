@@ -75,8 +75,9 @@ func getChallengeHandlerPost(ctx *gin.Context) {
 
 	if data.SignatureText != "" {
 		res["signData"] = gin.H{
-			"text": data.SignatureText,
-			"data": data.SignatureData,
+			"nonce": data.Nonce,
+			"text":  data.SignatureText,
+			"data":  data.SignatureData,
 		}
 	}
 	ctx.JSON(200, res)

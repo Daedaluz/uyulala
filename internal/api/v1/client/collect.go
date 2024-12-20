@@ -29,8 +29,9 @@ import (
 )
 
 type SignatureData struct {
-	Text string `json:"text"`
-	Data []byte `json:"data"`
+	Nonce string `json:"nonce"`
+	Text  string `json:"text"`
+	Data  []byte `json:"data"`
 }
 
 type CollectResponseExp struct {
@@ -83,7 +84,7 @@ func (c *CollectResponseExp) Response() *CollectResponse {
 func collectResponseFromChallenge(challenge *challengedb.Data) *CollectResponseExp {
 	res := &CollectResponseExp{
 		ChallengeID:   challenge.ID,
-		SignatureData: SignatureData{Text: challenge.SignatureText, Data: challenge.SignatureData},
+		SignatureData: SignatureData{Text: challenge.SignatureText, Data: challenge.SignatureData, Nonce: challenge.Nonce},
 		Status:        challenge.Status,
 		Signed:        challenge.Signed.Time,
 	}
