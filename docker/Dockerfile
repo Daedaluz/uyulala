@@ -12,7 +12,11 @@ RUN apk add --no-cache git file && npm i -g pnpm@latest
 RUN pnpm i
 RUN pnpm run build
 
+FROM alpine AS certs
+RUN apk add --no-cache ca-certificates
+
 FROM busybox:latest
+COPY --from=certs /etc/ssl/certs /etc/ssl/certs
 COPY --from=gobuilder /uyulala /usr/bin/uyulala
 COPY --from=nodebuilder /src/dist /www
 COPY /docker/uyulala.yml /etc/uyulala/uyulala.yml
