@@ -73,4 +73,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/go-webauthn/webauthn => github.com/daedaluz/webauthn v0.0.0-20241220074114-7407a678362b
+replace github.com/go-webauthn/webauthn => github.com/daedaluz/webauthn v0.0.0-20241221230755-e309b4172693

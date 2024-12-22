@@ -10,8 +10,8 @@ github.com/cloudwego/base64x v0.1.4/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJ
 github.com/cloudwego/iasm v0.2.0 h1:1KNIy1I1H9hNNFEEH3DVnI4UujN+1zjpuk6gwHLTssg=
 github.com/cloudwego/iasm v0.2.0/go.mod h1:8rXZaNYT2n95jn+zTI1sDr+IgcD2GVs0nlbbQPiEFhY=
 github.com/cpuguy83/go-md2man/v2 v2.0.4/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
-github.com/daedaluz/webauthn v0.0.0-20241220074114-7407a678362b h1:SFxnNLs0YgU1lYV8rzdgC1zmiiVaNm5Imdx3n0NDs8o=
-github.com/daedaluz/webauthn v0.0.0-20241220074114-7407a678362b/go.mod h1:qU5XxhBojKd+qGfXMjYlxd535D6esH8QgFo6DBWG9W8=
+github.com/daedaluz/webauthn v0.0.0-20241221230755-e309b4172693 h1:18+aLZfaQTH54BEN300Pfuw4HL/IE9TDmVT687quCHI=
+github.com/daedaluz/webauthn v0.0.0-20241221230755-e309b4172693/go.mod h1:qU5XxhBojKd+qGfXMjYlxd535D6esH8QgFo6DBWG9W8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
