@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/static v1.1.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-sql-driver/mysql v1.8.1
-	github.com/go-webauthn/webauthn v0.11.2
+	github.com/go-webauthn/webauthn v0.11.3-0.20241222212036-7e1caf73c56f
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
@@ -32,7 +32,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.23.0 // indirect
-	github.com/go-webauthn/x v0.1.15 // indirect
+	github.com/go-webauthn/x v0.1.16 // indirect
 	github.com/goccy/go-json v0.10.4 // indirect
 	github.com/google/go-tpm v0.9.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -72,5 +72,3 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/go-webauthn/webauthn => github.com/daedaluz/webauthn v0.0.0-20241221230755-e309b4172693

@@ -10,8 +10,6 @@ github.com/cloudwego/base64x v0.1.4/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJ
 github.com/cloudwego/iasm v0.2.0 h1:1KNIy1I1H9hNNFEEH3DVnI4UujN+1zjpuk6gwHLTssg=
 github.com/cloudwego/iasm v0.2.0/go.mod h1:8rXZaNYT2n95jn+zTI1sDr+IgcD2GVs0nlbbQPiEFhY=
 github.com/cpuguy83/go-md2man/v2 v2.0.4/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
-github.com/daedaluz/webauthn v0.0.0-20241221230755-e309b4172693 h1:18+aLZfaQTH54BEN300Pfuw4HL/IE9TDmVT687quCHI=
-github.com/daedaluz/webauthn v0.0.0-20241221230755-e309b4172693/go.mod h1:qU5XxhBojKd+qGfXMjYlxd535D6esH8QgFo6DBWG9W8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
@@ -44,8 +42,10 @@ github.com/go-playground/validator/v10 v10.23.0 h1:/PwmTwZhS0dPkav3cdK9kV1FsAmrL
 github.com/go-playground/validator/v10 v10.23.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
 github.com/go-sql-driver/mysql v1.8.1 h1:LedoTUt/eveggdHS9qUFC1EFSa8bU2+1pZjSRpvNJ1Y=
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
-github.com/go-webauthn/x v0.1.15 h1:eG1OhggBJTkDE8gUeOlGRbRe8E/PSVG26YG4AyFbwkU=
-github.com/go-webauthn/x v0.1.15/go.mod h1:pf7VI23raFLHPO9VVIs9/u1etqwAOP0S2KoHGL6WbZ8=
+github.com/go-webauthn/webauthn v0.11.3-0.20241222212036-7e1caf73c56f h1:JS1A2bvztP+wmOjunH86dmKuOerRNXkTuZl4zXhijNk=
+github.com/go-webauthn/webauthn v0.11.3-0.20241222212036-7e1caf73c56f/go.mod h1:JRgSlbywNJhn2sOgnsbEnRLFJhBSqmyQv+WDyHVtkw4=
+github.com/go-webauthn/x v0.1.16 h1:EaVXZntpyHviN9ykjdRBQIw9B0Ed3LO5FW7mDiMQEa8=
+github.com/go-webauthn/x v0.1.16/go.mod h1:jhYjfwe/AVYaUs2mUXArj7vvZj+SpooQPyyQGNab+Us=
 github.com/goccy/go-json v0.10.4 h1:JSwxQzIqKfmFX1swYPpUThQZp/Ka4wzJdK0LWVytLPM=
 github.com/goccy/go-json v0.10.4/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PULtXL6M=
 github.com/golang-jwt/jwt/v5 v5.2.1 h1:OuVbFODueb089Lh128TAcimifWaLhJwVflnrgM17wHk=
