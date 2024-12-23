@@ -163,7 +163,7 @@ func createBIDChallenge(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	challenge, secret, err := challengedb.CreateChallenge2(ctx, &challengedb.CreateChallengeData{
+	challenge, secret, err := challengedb.CreateChallenge(ctx, &challengedb.CreateChallengeData{
 		Type:          "webauthn.get",
 		AppID:         app.ID,
 		Expire:        time.Now().Add(time.Duration(req.Timeout).Abs() * time.Second),
@@ -300,7 +300,7 @@ func createCIBAChallenge(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusBadRequest, "invalid_request", "Invalid binding_message, must be utf8", nil)
 		return
 	}
-	challenge, secret, err := challengedb.CreateChallenge2(ctx, &challengedb.CreateChallengeData{
+	challenge, secret, err := challengedb.CreateChallenge(ctx, &challengedb.CreateChallengeData{
 		Type:          "webauthn.get",
 		AppID:         app.ID,
 		Expire:        time.Now().Add(time.Duration(timeout).Abs() * time.Second),

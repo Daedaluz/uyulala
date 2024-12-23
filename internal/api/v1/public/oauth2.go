@@ -141,7 +141,7 @@ func createOAuth2ChallengeHandler(ctx *gin.Context) {
 		api.AbortError(ctx, http.StatusInternalServerError, "internal_error", "Unexpected error", err)
 		return
 	}
-	challenge, secret, err := challengedb.CreateChallenge2(ctx, &challengedb.CreateChallengeData{
+	challenge, secret, err := challengedb.CreateChallenge(ctx, &challengedb.CreateChallengeData{
 		Type:          "webauthn.get",
 		AppID:         client.ID,
 		Expire:        time.Now().Add(time.Minute * 5),

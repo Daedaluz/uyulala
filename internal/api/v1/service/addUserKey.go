@@ -77,7 +77,7 @@ func createKeyHandler(ctx *gin.Context) {
 
 	expires := time.Now().Add(time.Duration(req.Timeout).Abs() * time.Second)
 	app := application.GetCurrentApplication(ctx)
-	challengeID, secret, err := challengedb.CreateChallenge2(ctx, &challengedb.CreateChallengeData{
+	challengeID, secret, err := challengedb.CreateChallenge(ctx, &challengedb.CreateChallengeData{
 		Type:          "webauthn.create",
 		AppID:         app.ID,
 		Expire:        expires,

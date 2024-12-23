@@ -35,7 +35,7 @@ type CreateChallengeData struct {
 	RedirectURL   string
 }
 
-func CreateChallenge2(ctx *gin.Context, data *CreateChallengeData, id string) (challengeID, secret string, err error) {
+func CreateChallenge(ctx *gin.Context, data *CreateChallengeData, id string) (challengeID, secret string, err error) {
 	var pubData, privData []byte
 	var secretToken uuid.UUID
 	secretToken, err = uuid.NewRandom()

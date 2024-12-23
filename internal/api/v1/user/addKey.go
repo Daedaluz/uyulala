@@ -76,7 +76,7 @@ func addKey(c *gin.Context) {
 	}
 
 	expires := time.Now().Add(time.Duration(req.Timeout).Abs() * time.Second)
-	challengeID, secret, err := challengedb.CreateChallenge2(c, &challengedb.CreateChallengeData{
+	challengeID, secret, err := challengedb.CreateChallenge(c, &challengedb.CreateChallengeData{
 		Type:          "webauthn.create",
 		AppID:         "",
 		Expire:        expires,
