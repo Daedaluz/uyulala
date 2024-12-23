@@ -58,7 +58,7 @@ Point a browser at `https://localhost:8080/demo`
     ```bash
     PROFILE=use-case ./scripts/docker-compose.sh down
     ```
-2) Create a user with a registered key by going to `http://localhost/demo`
+2) Create a user with a registered key by going to `https://localhost/demo`
 3) point browser to `http://localhost:3000/`
 4) Authenticate with key
 5) ????
