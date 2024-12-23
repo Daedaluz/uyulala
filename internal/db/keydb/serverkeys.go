@@ -7,10 +7,11 @@ import (
 	"crypto/rsa"
 	"encoding/hex"
 	"encoding/json"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/lestrrat-go/jwx/jwk"
 	"gitlab.com/daedaluz/gindb"
-	"time"
 )
 
 type ServerKey struct {

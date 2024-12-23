@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"uyulala/cmd/create/app"
 	"uyulala/internal/db"
+
+	"github.com/spf13/cobra"
 )
 
 // appCmd represents the app command

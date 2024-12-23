@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"uyulala/cmd/create/key"
+
+	"github.com/spf13/cobra"
 )
 
 // keyCmd represents the key command

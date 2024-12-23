@@ -4,13 +4,14 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"time"
+	"uyulala/internal/db"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 	"gitlab.com/daedaluz/gindb"
-	"time"
-	"uyulala/internal/db"
 )
 
 func CreateUser(ctx *gin.Context) (string, error) {

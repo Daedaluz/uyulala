@@ -455,7 +455,8 @@ END;
 CREATE OR REPLACE PROCEDURE rotate_session(IN session_id VARCHAR(18), IN expire DATETIME)
 BEGIN
     UPDATE sessions
-    SET sessions.expire_at = expire, sessions.counter = sessions.counter + 1
+    SET sessions.expire_at = expire,
+        sessions.counter   = sessions.counter + 1
     WHERE sessions.id = session_id;
 END;
 

@@ -1,12 +1,13 @@
 package app
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"gitlab.com/daedaluz/gindb"
 	"log/slog"
 	"os"
 	"uyulala/internal/db/keydb"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"gitlab.com/daedaluz/gindb"
 )
 
 var (

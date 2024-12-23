@@ -1,11 +1,12 @@
 package trust
 
 import (
-	"github.com/lestrrat-go/jwx/jwk"
-	"golang.org/x/net/context"
 	"net/http"
 	"time"
 	"uyulala/openid/discovery"
+
+	"github.com/lestrrat-go/jwx/jwk"
+	"golang.org/x/net/context"
 )
 
 var (

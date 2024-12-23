@@ -2,9 +2,6 @@ package application
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/spf13/viper"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -12,6 +9,10 @@ import (
 	"uyulala/internal/api"
 	"uyulala/internal/db/keydb"
 	"uyulala/internal/trust"
+
+	"github.com/gin-gonic/gin"
+	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/viper"
 )
 
 func UserMiddleware() gin.HandlerFunc {

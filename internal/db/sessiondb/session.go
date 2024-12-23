@@ -2,6 +2,9 @@ package sessiondb
 
 import (
 	"database/sql"
+	"time"
+	"uyulala/internal/db"
+
 	"github.com/gin-gonic/gin"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -9,8 +12,6 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/spf13/viper"
 	"gitlab.com/daedaluz/gindb"
-	"time"
-	"uyulala/internal/db"
 )
 
 type Session struct {

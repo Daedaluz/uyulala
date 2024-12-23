@@ -8,13 +8,14 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"os"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gitlab.com/daedaluz/gindb"
-	"log/slog"
-	"os"
 )
 
 var (

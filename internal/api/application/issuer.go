@@ -2,15 +2,16 @@ package application
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/spf13/viper"
 	"net/http"
 	"strings"
 	"time"
 	"uyulala/internal/api"
 	"uyulala/internal/db/keydb"
+
+	"github.com/gin-gonic/gin"
+	"github.com/lestrrat-go/jwx/jws"
+	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/viper"
 )
 
 func IssuerMiddleware() gin.HandlerFunc {

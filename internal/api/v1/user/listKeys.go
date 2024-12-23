@@ -3,11 +3,12 @@ package user
 import (
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"uyulala/internal/api"
 	"uyulala/internal/api/application"
 	"uyulala/internal/db/userdb"
+
+	"github.com/gin-gonic/gin"
 )
 
 func listKeys(c *gin.Context) {

@@ -1,11 +1,12 @@
 package oidc
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/lestrrat-go/jwx/jwk"
 	"log/slog"
 	"net/http"
 	"uyulala/internal/db/keydb"
+
+	"github.com/gin-gonic/gin"
+	"github.com/lestrrat-go/jwx/jwk"
 )
 
 func handleJWKSetRequest(c *gin.Context) {

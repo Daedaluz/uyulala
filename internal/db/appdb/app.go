@@ -2,9 +2,10 @@ package appdb
 
 import (
 	"database/sql"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"gitlab.com/daedaluz/gindb"
-	"time"
 )
 
 type Application struct {
