@@ -283,7 +283,7 @@ export const DemoPage = () => {
                 </FormGroup>
             </FormGroup>
             {challenge !== null &&
-                <AnimatedQR challenge={challenge!} startTime={startTime}/>
+                <AnimatedQR challenge={challenge!} startTime={startTime} popUp={true}/>
             }
             {result &&
                 <Alert severity={alertSeverity} style={{width: '90vw'}}>

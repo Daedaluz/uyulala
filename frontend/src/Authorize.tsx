@@ -1,34 +1,31 @@
 import {useSearchParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {useNavigate} from 'react-router-dom';
-import {ApiError} from "./Api/common.ts";
+import {ApiError, ChallengeResponse} from "./Api/common.ts";
 import {useApi} from "./Context/Api.tsx";
-import * as jose from "jose/jwt/sign";
+import {AnimatedQR} from "./Components/AnimatedQR.tsx";
 
 export const Authorize = () => {
     const [params] = useSearchParams();
     const {publicApi: api} = useApi();
-    const navigate = useNavigate();
     const [error, setError] = useState<ApiError>();
+
+    const [challenge, setChallenge] = useState<ChallengeResponse | null>(null);
+    const [startTime, setStartTime] = useState<Date>(new Date());
+
 
     useEffect(() => {
         api.createOAuth2Challenge(params).then((response) => {
-            const payload = {challenge_id: response.challenge_id, persistent: true};
-            const secret = new TextEncoder().encode(response.secret);
-            new jose.SignJWT(payload)
-                .setProtectedHeader({alg: 'HS256'})
-                .sign(secret)
-                .then(token => {
-                    navigate(`/authenticator?token=${token}`);
-                })
+            setChallenge(() => response);
+            setStartTime(() => new Date());
         }).catch((error) => {
             setError(error);
         });
-    }, []);
+    }, [api, params]);
 
     return (
         <>
             <h1>Authorize</h1>
+            {challenge && <AnimatedQR challenge={challenge} startTime={startTime} popUp={false}/>}
             {error && <p>{JSON.stringify(error)}</p>}
         </>
     )

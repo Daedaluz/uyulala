@@ -8,9 +8,10 @@ import {Button, Stack} from "@mui/material";
 interface AnimatedQRProps {
     challenge: ChallengeResponse
     startTime: Date
+    popUp: boolean
 }
 
-export const AnimatedQR = ({startTime, challenge}: AnimatedQRProps) => {
+export const AnimatedQR = ({startTime, challenge, popUp}: AnimatedQRProps) => {
     const [duration, setDuration] = useState(() => {
         // Get time since start in seconds
         return Math.floor((Date.now() - startTime.getTime()) / 1000);
@@ -56,9 +57,18 @@ export const AnimatedQR = ({startTime, challenge}: AnimatedQRProps) => {
         return `${window.location.origin}/authenticator?&token=${tokenData}`;
     }, [tokenData])
 
+    const onClick = () => {
+        if (popUp) {
+            window.open(qrData, 'createUser', 'resizeable,height=800,width=600');
+        } else {
+            window.location.href = qrData;
+        }
+    }
 
     return <Stack spacing={2} width={325}>
         <QR value={qrData}/>
-        <Button fullWidth={false} variant={'contained'} onClick={() => window.open(qrData, 'createUser', 'resizeable,height=800,width=600')} color={'primary'}>Use this computer</Button>
+        <Button fullWidth={false} variant={'contained'}
+                onClick={onClick} color={'primary'}>Use
+            this computer</Button>
     </Stack>
 }

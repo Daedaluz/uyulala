@@ -1,5 +1,5 @@
 # Issuer
-issuer: https://localhost:8080
+issuer: https://localhost:5173
 
 # HTTP settings
 http:
@@ -35,9 +35,6 @@ webauthn:
   display_name: uyulala
   # The origins of the Relying Party
   origins:
-    - https://localhost
-    - http://localhost:8080
-    - https://localhost:8080
     - http://localhost:5173
     - https://localhost:5173
   # The attestation mode

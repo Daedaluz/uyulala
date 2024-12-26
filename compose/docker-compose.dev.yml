@@ -5,3 +5,23 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: uyulala
+  grafana:
+    image: grafana/grafana:11.4.0
+    network_mode: "host"
+    environment:
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "demo"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "demo"
+      GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE: "true"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://localhost:5173/authorize"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://localhost:5173/api/v1/collect"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "https://localhost:5173/api/v1/oidc/userinfo"
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid offline_access"
+      GF_AUTH_GENERIC_OAUTH_AUTH_STYLE: "InHeader"
+      GF_AUTH_GENERIC_OAUTH_NAME: "Uyulala"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN: "true"
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "'Admin'"
+      GF_AUTH_GENERIC_OAUTH_AUTO_LOGIN: "true"
+      GF_AUTH_SIGNOUT_REDIRECT_URL: "https://localhost:5173/demo"
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
