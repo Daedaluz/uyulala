@@ -223,6 +223,9 @@ type Optional struct {
 	// URL that the OpenID Provider provides to the person registering the Client to read about OpenID Provider's terms of service.
 	// The registration process SHOULD display this URL to the person registering the Client if it is given.
 	OpTosURI string `json:"op_tos_uri,omitempty"`
+
+	// JSON array containing a list of PKCE code_challenge methods supported
+	CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported,omitempty"`
 }
 
 type Full struct {
@@ -383,6 +386,9 @@ type Full struct {
 
 	// URL of the OP's Backchannel QR Code Authentication Endpoint.
 	BackChannelAuthenticationQREndpoint string `json:"backchannel_authentication_qr_endpoint,omitempty"`
+
+	// JSON array containing a list of PKCE code_challenge methods supported
+	CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported,omitempty"`
 }
 
 func (f *Full) AddSupportedIDTokenSigningAlg(alg string) {
@@ -431,6 +437,7 @@ func NewConfig(config *Required, optional *Optional) *Full {
 		BackChannelTokenDeliveryModesSupported:     nil,
 		BackChannelAuthenticationEndpoint:          "",
 		BackChannelAuthenticationQREndpoint:        "",
+		CodeChallengeMethodsSupported:              []string{},
 	}
 	x, _ := json.Marshal(config)
 	_ = json.Unmarshal(x, res)

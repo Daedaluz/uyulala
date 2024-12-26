@@ -172,7 +172,7 @@ func Main(cmd *cobra.Command, args []string) {
 			loadCerts(server)
 			ln, err := net.Listen("tcp", viper.GetString("http.addr"))
 			if err != nil {
-				slog.Error("Couldn't start server", "error", err)
+				slog.Error("Couldn't start TLS server", "error", err)
 				return
 			}
 			if err := server.ServeTLS(ln, "", ""); err != nil {
@@ -188,7 +188,7 @@ func Main(cmd *cobra.Command, args []string) {
 			}
 		}
 	}()
-	slog.Info("Server started", "addr", viper.GetString("http.addr"))
+	slog.Info("Server started", "addr", viper.GetString("http.addr"), "tls", viper.GetBool("tls.enable"))
 	<-sigch
 	slog.Info("Shutting down server")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

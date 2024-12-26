@@ -84,7 +84,7 @@ sequenceDiagram
 
 When challenges are created with a `text` prompt, the webauthn challenge is calculated as follows:
 
-SHA256(UserID + '\n' + ChallengeID '\n' + nonce + '\n' + Text + '\n' + Data)
+SHA256(UserID + '\n' + AppID + '\n' + ChallengeID '\n' + nonce + '\n' + Text + '\n' + Data)
 
 ## API
 

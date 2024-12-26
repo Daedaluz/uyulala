@@ -20,7 +20,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/lestrrat-go/jwx/jwt"
 )
 
 type CreateBIDChallengeRequest struct {
@@ -33,17 +32,17 @@ type CreateBIDChallengeRequest struct {
 	Redirect         string                               `json:"redirect"`
 }
 
-type CreateCIBAChallengeRequest struct {
-	ctx    *gin.Context
-	UserID string
-}
-
 type CIBAAuthenticationResponse struct {
 	RequestID string `json:"auth_req_id"`
 	ExpiresIn int64  `json:"expires_in"`
 	Interval  int64  `json:"interval,omitempty"`
 	QRData    string `json:"qr_data,omitempty"`   // CIBA Extension
 	QRSecret  string `json:"qr_secret,omitempty"` // CIBA Extension
+}
+
+type CreateCIBAChallengeRequest struct {
+	ctx    *gin.Context
+	UserID string
 }
 
 func (c CreateCIBAChallengeRequest) WebAuthnID() []byte {
@@ -137,6 +136,8 @@ func createBIDChallenge(ctx *gin.Context) {
 		buff := bytes.Buffer{}
 		buff.Write([]byte(req.UserID))
 		buff.WriteByte('\n')
+		buff.Write([]byte(app.ID))
+		buff.WriteByte('\n')
 		buff.Write([]byte(challengeID))
 		buff.WriteByte('\n')
 		buff.Write([]byte(nonce))
@@ -179,32 +180,6 @@ func createBIDChallenge(ctx *gin.Context) {
 		return
 	}
 	api.ChallengeResponse(ctx, challenge, secret)
-}
-
-func getUserHint(ctx *gin.Context) (string, error) {
-	loginHint := ctx.Request.Form.Get("login_hint")
-	loginHintToken := ctx.Request.Form.Get("login_hint_token")
-	idTokenHint := ctx.Request.Form.Get("id_token_hint")
-	if loginHint != "" {
-		return loginHint, nil
-	}
-	if idTokenHint != "" || loginHintToken != "" {
-		var token jwt.Token
-		var err error
-		if idTokenHint != "" {
-			token, err = jwt.Parse([]byte(idTokenHint), jwt.WithValidate(true))
-		} else {
-			token, err = jwt.Parse([]byte(loginHintToken), jwt.WithValidate(true))
-		}
-		if err != nil {
-			api.AbortError(ctx, http.StatusBadRequest, "expired_login_hint_token", "Invalid token", err)
-			return "", err
-		}
-		if sub, ok := token.Get("sub"); ok {
-			return sub.(string), nil
-		}
-	}
-	return "", nil
 }
 
 func createCIBAChallenge(ctx *gin.Context) {

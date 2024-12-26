@@ -69,6 +69,13 @@ refreshToken:
   # Extend refresh token when used
   extendOnUse: true
 
+userInfo:
+  # The made-up email domain suffix for the userinfo endpoint
+  # if the userinfo endpoint is not set.
+  emailSuffix: "uyulala.local"
+  # Customize the userinfo endpoint.
+  endpoint: ""
+
 # Access token settings
 accessToken:
   # How long an access token should be valid before a refresh is required
@@ -80,7 +87,7 @@ accessToken:
 
 # TLS Settings
 tls:
-  enabled: true
+  enable: true
   generate: true
   cert: "tls/server.crt"
   key: "tls/server.key"

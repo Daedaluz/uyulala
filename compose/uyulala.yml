@@ -44,6 +44,13 @@ webauthn:
   # platform or cross-platform or empty
   attachment: ""
 
+userInfo:
+  # The made-up email domain suffix for the userinfo endpoint
+  # if the userinfo endpoint is not set.
+  emailSuffix: "uyulala.local"
+  # Customize the userinfo endpoint.
+  endpoint: ""
+
 challenge:
   # Max time difference for the get challenge token
   maxTimeDiff: 5s

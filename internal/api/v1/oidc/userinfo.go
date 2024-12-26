@@ -1,12 +1,14 @@
 package oidc
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"uyulala/internal/api"
 	"uyulala/internal/api/application"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func userinfo(c *gin.Context) {
@@ -20,6 +22,6 @@ func userinfo(c *gin.Context) {
 	api.JSONResponse(c, gin.H{
 		"sub":   subj,
 		"name":  subj[:8],
-		"email": subj[:10] + "@uyulala.local",
+		"email": fmt.Sprintf("%s@%s", subj[:10], viper.GetString("userInfo.emailSuffix")),
 	})
 }

@@ -23,15 +23,13 @@ const configs = {
             },
             proxy: {
                 '/.well-known': {
-                    target: 'http://localhost:8080',
+                    target: 'https://localhost:8080',
+                    secure: false
                 },
                 '/api': {
-                    target: 'http://localhost:8080',
+                    target: 'https://localhost:8080',
+                    secure: false
                 },
-                '/api/v1/remote': {
-                    target: 'http://localhost:8080',
-                    ws: true,
-                }
             }
         },
         plugins: [react()],

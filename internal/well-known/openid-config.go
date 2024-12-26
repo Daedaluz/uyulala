@@ -38,9 +38,14 @@ func OpenIDConfigurationHandler(c *gin.Context) {
 			discovery.ACRPreferUserVerification,
 			discovery.ACRUserVerification,
 		},
+		CodeChallengeMethodsSupported: []string{"plain", "S256"},
 	}
 	cfg := discovery.NewConfig(req, opt)
-	cfg.UserInfoEndpoint = fmt.Sprintf("%s/api/v1/oidc/userinfo", issuer)
+	userinfoEndpoint := viper.GetString("userInfo.endpoint")
+	if userinfoEndpoint == "" {
+		userinfoEndpoint = fmt.Sprintf("%s/api/v1/oidc/userinfo", issuer)
+	}
+	cfg.UserInfoEndpoint = userinfoEndpoint
 	cfg.ResponseModesSupported = []string{discovery.ResponseModeQuery}
 	cfg.TokenEndpointAuthMethodsSupported = []string{discovery.TokenAuthClientSecretPost, discovery.TokenAuthClientSecretBasic}
 	algs, err := keydb.GetAvailableAlgorithms(c)

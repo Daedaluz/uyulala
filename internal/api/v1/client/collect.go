@@ -37,6 +37,7 @@ type SignatureData struct {
 type CollectResponseExp struct {
 	ChallengeID          string                                  `json:"challengeId"`
 	UserID               string                                  `json:"userId"`
+	AppID                string                                  `json:"appId"`
 	SignatureData        SignatureData                           `json:"signatureData"`
 	PublicData           *protocol.CredentialAssertion           `json:"assertion"`
 	AssertionSignature   *protocol.ParsedCredentialAssertionData `json:"assertionSignature,omitempty"`
@@ -49,6 +50,7 @@ type CollectResponseExp struct {
 type CollectResponse struct {
 	ChallengeID         string                                     `json:"challengeId"`
 	UserID              string                                     `json:"userId"`
+	AppID               string                                     `json:"appId"`
 	Status              string                                     `json:"status"`
 	Signed              time.Time                                  `json:"signed"`
 	UserPresent         bool                                       `json:"userPresent"`
@@ -64,6 +66,7 @@ func (c *CollectResponseExp) Response() *CollectResponse {
 	res := &CollectResponse{
 		ChallengeID:   c.ChallengeID,
 		UserID:        c.UserID,
+		AppID:         c.AppID,
 		Status:        c.Status,
 		Signed:        c.Signed,
 		PublicKey:     c.Credential.PublicKey,
@@ -84,6 +87,7 @@ func (c *CollectResponseExp) Response() *CollectResponse {
 func collectResponseFromChallenge(challenge *challengedb.Data) *CollectResponseExp {
 	res := &CollectResponseExp{
 		ChallengeID:   challenge.ID,
+		AppID:         challenge.AppID,
 		SignatureData: SignatureData{Text: challenge.SignatureText, Data: challenge.SignatureData, Nonce: challenge.Nonce},
 		Status:        challenge.Status,
 		Signed:        challenge.Signed.Time,
