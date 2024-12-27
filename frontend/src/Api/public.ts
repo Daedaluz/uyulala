@@ -52,7 +52,7 @@ export class publicApi {
         this.url = url;
     }
 
-    getChallengePost(token: string) {
+    getChallenge(token: string) {
         return fetchJSON<JSONChallenge>(`${this.url}/api/v1/challenge`, {
             method: "POST",
             headers: {

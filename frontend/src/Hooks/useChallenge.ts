@@ -25,7 +25,7 @@ export const useChallengePost = (token: string) => {
             setError(undefined);
             setAssertOptions(null);
             setCreateOptions(null);
-            api.getChallengePost(token).then(challenge => {
+            api.getChallenge(token).then(challenge => {
                 setApp(challenge.app);
                 setSignData(challenge.signData);
                 if (challenge instanceof ICredentialRequestOptions) {
