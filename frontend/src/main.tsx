@@ -59,7 +59,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ApiProvider>
         <ThemeProvider theme={darkTheme}>
             <AlertProvider>
-                <BrowserRouter>
+                <BrowserRouter future={{
+                    v7_relativeSplatPath: true,
+                    v7_startTransition: true,
+                }}>
                     <Routes>
                         <Route path="/" element={<RootLayout/>}>
                             <Route index element={<Home/>}/>
