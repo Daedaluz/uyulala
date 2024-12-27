@@ -7,11 +7,11 @@ import {useSearchParams} from "react-router-dom";
 function Authenticator() {
     const [params] = useSearchParams();
     const id = params.get("token");
+    console.log("Authenticator:", id);
+    const {assertOptions, createOptions, error, loading, app, signData} = useChallenge(id || "");
     if (!id) {
         return <h3>Missing id</h3>
     }
-    console.log("Authenticator:", id);
-    const {assertOptions, createOptions, error, loading, app, signData} = useChallenge(id);
     if (loading) {
         return <div>Loading...</div>
     }

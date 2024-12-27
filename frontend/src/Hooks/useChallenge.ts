@@ -20,7 +20,7 @@ export const useChallenge = (token: string) => {
     });
 
     useEffect(() => {
-        if (token) {
+        if (token && token !== "") {
             setLoading(true);
             setError(undefined);
             setAssertOptions(null);
