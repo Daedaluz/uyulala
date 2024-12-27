@@ -2,6 +2,7 @@
   "id": "com.uyulala.authenticator",
   "name": "Uyulala authenticator",
   "short_name": "Uyulala",
+  "description": "Uyulala webauthn authenticator",
   "icons": [
     {
       "src": "security-shield-svgrepo-com.svg",
