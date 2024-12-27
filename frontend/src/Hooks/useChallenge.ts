@@ -4,7 +4,7 @@ import {App, ICredentialRequestOptions, SignData} from "../Api/public.ts";
 import {useApi} from "../Context/Api.tsx";
 
 
-export const useChallengePost = (token: string) => {
+export const useChallenge = (token: string) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<ApiError | undefined>();
     const {publicApi: api} = useApi();

@@ -1,4 +1,4 @@
-import {useChallengePost} from "./Hooks/useChallenge.ts";
+import {useChallenge} from "./Hooks/useChallenge.ts";
 import {CreateKey} from "./Components/CreateKey.tsx";
 import {Sign} from "./Components/Sign.tsx";
 import {ReactElement} from "react";
@@ -11,7 +11,7 @@ function Authenticator() {
         return <h3>Missing id</h3>
     }
     console.log("Authenticator:", id);
-    const {assertOptions, createOptions, error, loading, app, signData} = useChallengePost(id);
+    const {assertOptions, createOptions, error, loading, app, signData} = useChallenge(id);
     if (loading) {
         return <div>Loading...</div>
     }
